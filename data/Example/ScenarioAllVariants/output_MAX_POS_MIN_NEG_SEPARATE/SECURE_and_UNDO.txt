@@ -1,0 +1,2 @@
+Stack decrypt() Refinement
+Stack encrypt() Refinement
