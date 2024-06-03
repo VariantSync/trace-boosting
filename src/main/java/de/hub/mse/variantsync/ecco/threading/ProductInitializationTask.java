@@ -15,23 +15,58 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+/**
+ * A Callable task for initializing a product with the given parameters.
+ * 
+ * @param productNumber The number of the product to initialize.
+ * @param productName   The name of the product to initialize.
+ * @param configPath    The path to the configuration file for the product.
+ * @param sourcePath    The path to the source files for the product.
+ * @param allFeatures   The set of all features implemented by the product.
+ * @param usedLanguage  The primary language used in the product.
+ * @return An InitResult object representing the result of the initialization
+ *         task.
+ * @throws Exception If an error occurs during the initialization process.
+ */
 public class ProductInitializationTask implements Callable<ProductInitializationTask.InitResult> {
     private final int productNumber;
     private final String productName;
     private final File configPath;
     private final File sourcePath;
     private final EccoSet<Feature> allFeatures;
-    private final ESupportedLanguages targetLanguage;
+    private final ESupportedLanguages usedLanguage;
 
-    public ProductInitializationTask(final int productNumber, final ProductPassport passport, final ESupportedLanguages targetLanguage) {
+    /**
+     * Initializes a ProductInitializationTask with the given product number,
+     * product passport, and target language.
+     * 
+     * @param productNumber  the product number to assign to the task
+     * @param passport       the product passport containing information about the
+     *                       product
+     * @param targetLanguage the target language for the task
+     */
+    public ProductInitializationTask(final int productNumber, final ProductPassport passport,
+            final ESupportedLanguages targetLanguage) {
         this.productNumber = productNumber;
         this.productName = passport.getName();
         this.configPath = passport.getConfiguration().toFile();
         this.sourcePath = passport.getSourcesRoot().toFile();
         this.allFeatures = new EccoSet<>();
-        this.targetLanguage = targetLanguage;
+        this.usedLanguage = targetLanguage;
     }
 
+    /**
+     * Parses the sources and creates an InitResult with the created product.
+     * 
+     * This method reads a configuration file specified by the configPath parameter,
+     * parses the features listed in the file,
+     * creates a product AST based on the target language specified, and returns an
+     * InitResult object containing the parsed information.
+     *
+     * @return InitResult - an object containing the parsed information
+     * @throws Exception - if an error occurs during parsing or creating the
+     *                   InitResult object
+     */
     @Override
     public InitResult call() throws Exception {
         Logger.info("Parsing variant " + productNumber + "...");
@@ -52,7 +87,7 @@ public class ProductInitializationTask implements Callable<ProductInitialization
         }
         final AbstractAST productAst;
         try {
-            switch (targetLanguage) {
+            switch (usedLanguage) {
                 case C:
                     productAst = new CAST(sourcePath);
                     break;
@@ -63,20 +98,45 @@ public class ProductInitializationTask implements Callable<ProductInitialization
                     productAst = new LineAST(sourcePath);
                     break;
                 default:
-                    throw new IllegalStateException("Unexpected value: " + targetLanguage);
+                    throw new IllegalStateException("Unexpected value: " + usedLanguage);
             }
         } catch (final Exception e) {
             throw new RuntimeException("Was not able to parse " + sourcePath, e);
         }
 
-        return new InitResult(productNumber, allFeatures, new Product(productName, new EccoSet<>(), productAst, productFeatures));
+        return new InitResult(productNumber, allFeatures,
+                new Product(productName, new EccoSet<>(), productAst, productFeatures));
     }
 
+    /**
+     * Represents the result of initializing a product.
+     * Contains the ID of the initialization, a set of all features, and the product
+     * associated with the initialization.
+     */
     public static class InitResult {
+        /**
+         * The ID of the initialization.
+         */
         public final int id;
+
+        /**
+         * A set of all features associated with the initialization.
+         */
         public final EccoSet<Feature> allFeatures;
+
+        /**
+         * The product associated with the initialization.
+         */
         public final Product product;
 
+        /**
+         * Constructs a new InitResult with the specified ID, set of all features, and
+         * product.
+         * 
+         * @param id          The ID of the initialization.
+         * @param allFeatures A set of all features associated with the initialization.
+         * @param product     The product associated with the initialization.
+         */
         public InitResult(final int id, final EccoSet<Feature> allFeatures, final Product product) {
             this.id = id;
             this.allFeatures = allFeatures;
