@@ -9,6 +9,12 @@ import de.hub.mse.variantsync.boosting.ecco.EccoSet;
 
 import java.io.File;
 
+/**
+ * Represents an Abstract Syntax Tree (AST) for Java files.
+ * This class extends the AbstractAST class and provides specific functionality
+ * for Java files.
+ * 
+ */
 public class JavaAST extends AbstractAST {
     public JavaAST() {
         super(".java");

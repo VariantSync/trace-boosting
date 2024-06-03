@@ -14,13 +14,29 @@ import de.hub.mse.variantsync.boosting.position.Position;
 
 import org.tinylog.Logger;
 
+/**
+ * This class represents a Java visitor that is used to visit ASTNodes in a Java
+ * file.
+ */
 public class JavaVisitor extends VoidVisitorWithDefaults<ASTNode> {
     private final String visitedFile;
 
+    /**
+     * Constructs a new JavaVisitor object with the specified visited file.
+     *
+     * @param visitedFile The file being visited by the JavaVisitor.
+     */
     public JavaVisitor(final String visitedFile) {
         this.visitedFile = visitedFile;
     }
 
+    /**
+     * Parses a javaparser Position object into our custom Position
+     * object.
+     *
+     * @param parserPosition The com.github.javaparser.Position object to be parsed.
+     * @return A custom Position object representing the parsed position.
+     */
     public Position parsePosition(final com.github.javaparser.Position parserPosition) {
         return new LinePosition(visitedFile, parserPosition.line, parserPosition.column);
     }

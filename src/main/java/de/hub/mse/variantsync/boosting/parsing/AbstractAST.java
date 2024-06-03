@@ -12,12 +12,26 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * AbstractAST is an abstract class representing an Abstract Syntax Tree (AST)
+ * with a root node and a set of AST nodes.
+ * This class provides constructors to create an AST with optional filtering
+ * based on file types.
+ * 
+ * @param root      the root node of the AST
+ * @param astNodes  the set of AST nodes in the tree
+ * @param fileTypes a set of file types to filter the AST nodes by
+ */
 public abstract class AbstractAST implements Serializable {
     protected final ASTNode root;
     protected final EccoSet<ASTNode> astNodes;
-    // Used for filtering; no filtering is applied if the set is empty
     protected final Set<String> fileTypes;
 
+    /**
+     * Constructs an AbstractAST with no filtering based on file types.
+     * 
+     * @param fileTypes an array of file types to filter the AST nodes by
+     */
     public AbstractAST(final String... fileTypes) {
         this.fileTypes = new HashSet<>();
         Collections.addAll(this.fileTypes, fileTypes);
@@ -25,6 +39,12 @@ public abstract class AbstractAST implements Serializable {
         astNodes = new EccoSet<>();
     }
 
+    /**
+     * Constructs an AbstractAST with filtering based on file types.
+     * 
+     * @param rootFile  the root file to build the AST from
+     * @param fileTypes an array of file types to filter the AST nodes by
+     */
     public AbstractAST(final File rootFile, final String... fileTypes) {
         this.fileTypes = new HashSet<>();
         Collections.addAll(this.fileTypes, fileTypes);
@@ -33,6 +53,14 @@ public abstract class AbstractAST implements Serializable {
         astNodes = collectAstNodes();
     }
 
+    /**
+     * Constructs an AbstractAST with a specified root node, set of AST nodes, and
+     * optional filtering based on file types.
+     * 
+     * @param root      the root node of the AST
+     * @param astNodes  the set of AST nodes in the tree
+     * @param fileTypes an array of file types to filter the AST nodes by
+     */
     public AbstractAST(final ASTNode root, final EccoSet<ASTNode> astNodes,
             final String... fileTypes) {
         this.fileTypes = new HashSet<>();
@@ -41,8 +69,12 @@ public abstract class AbstractAST implements Serializable {
         this.astNodes = astNodes;
     }
 
-    // collects all nodes (except the root node) of the AST in one set to simplify
-    // their access
+    /**
+     * Collects all nodes (except the root node) of the Abstract Syntax Tree (AST)
+     * in one set to simplify their access.
+     * 
+     * @return EccoSet<ASTNode> - a set containing all nodes of the AST
+     */
     public EccoSet<ASTNode> collectAstNodes() {
         final EccoSet<ASTNode> result = new EccoSet<>();
         final ArrayList<ASTNode> nodesToVisit = new ArrayList<>();
@@ -55,7 +87,12 @@ public abstract class AbstractAST implements Serializable {
         return result;
     }
 
-    // create the AST from a file
+    /**
+     * Creates the AST from a file.
+     * 
+     * @param parent     - the parent ASTNode to which the file belongs
+     * @param parentFile - the File object representing the parent directory
+     */
     private void visitFile(final ASTNode parent, final File parentFile) {
         final File[] children = parentFile.listFiles();
         if (children == null)
@@ -83,13 +120,38 @@ public abstract class AbstractAST implements Serializable {
         }
     }
 
+    /**
+     * This method is responsible for visiting the content of a file represented by
+     * the given ASTNode and File object.
+     * 
+     * @param fileNode    The ASTNode representing the content of the file to be
+     *                    visited.
+     * @param fileToVisit The File object representing the file to be visited.
+     * 
+     * @throws NullPointerException     if either fileNode or fileToVisit is null.
+     * @throws IllegalArgumentException if the fileToVisit does not exist or is not
+     *                                  a valid file.
+     * @throws IOException              if an I/O error occurs while reading the
+     *                                  file content.
+     */
     protected abstract void visitFileContent(final ASTNode fileNode, final File fileToVisit);
 
+    /**
+     * Returns the root node of the Abstract Syntax Tree (AST).
+     *
+     * @return the root node of the AST
+     */
     public ASTNode getRoot() {
         return root;
     }
 
+    /**
+     * Returns a set of all AST nodes in the tree.
+     *
+     * @return a set of all AST nodes
+     */
     public EccoSet<ASTNode> getAstNodes() {
         return astNodes;
     }
+
 }

@@ -81,7 +81,7 @@ public class Association {
     /**
      * Returns the set of AST nodes contained in this EccoSet.
      *
-     * @return EccoSet<EccoNode> - a set of EccoNode objects representing the AST
+     * @return EccoSet<ASTNode> - a set of ASTNode objects representing the AST
      *         nodes
      */
     public EccoSet<ASTNode> getAstNodes() {
