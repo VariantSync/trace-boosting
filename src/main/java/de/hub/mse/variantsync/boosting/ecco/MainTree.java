@@ -11,20 +11,35 @@ import org.logicng.formulas.Formula;
 import java.io.Serializable;
 import java.util.*;
 
+/**
+ * Represents the merged AST of several product ASTs.
+ */
 public class MainTree implements Serializable {
 
     private final AbstractAST tree;
     private final Map<ASTNode, Set<ProductPosition>> positionMap;
     private Map<ProductPosition, ASTNode> inversePositionMap;
 
+    /**
+     * Constructs a MainTree object with the given AbstractAST tree.
+     *
+     * @param tree the AbstractAST tree to be set for this MainTree
+     */
     public MainTree(final AbstractAST tree) {
         this.tree = tree;
         positionMap = new HashMap<>();
         inversePositionMap = null;
     }
 
-    // merge this AST into another AST (main tree) and return the set of all nodes
-    // in the resulting main tree corresponding to the nodes of this AST
+    /**
+     * Merge this Abstract Syntax Tree (AST) into another AST (main tree) and return
+     * the set of all nodes
+     * in the resulting main tree corresponding to the nodes of this AST.
+     *
+     * @param product The product containing the main tree to merge this AST into.
+     * @return The set of all nodes in the resulting main tree corresponding to the
+     *         nodes of this AST.
+     */
     public EccoSet<ASTNode> unite(final Product product) {
         final EccoSet<ASTNode> result = new EccoSet<>();
         uniteChildren(result, product.getProductAst().getRoot(), tree.getRoot(), product);
@@ -104,6 +119,14 @@ public class MainTree implements Serializable {
         }
     }
 
+    /**
+     * Retrieves the mapping formula associated with a given product position.
+     * 
+     * @param position The product position for which to retrieve the mapping
+     *                 formula
+     * @return The mapping formula associated with the given product position
+     * @throws NullPointerException if the inversePositionMap is not initialized
+     */
     public Formula getMapping(final ProductPosition position) {
         if (inversePositionMap == null) {
             initializeInversePositionMap();
@@ -120,10 +143,21 @@ public class MainTree implements Serializable {
         }
     }
 
+    /**
+     * Retrieves the set of ProductPositions associated with the given ASTNode.
+     * 
+     * @param node the ASTNode for which to retrieve the ProductPositions
+     * @return a Set of ProductPositions associated with the given ASTNode
+     */
     public Set<ProductPosition> getProductPositions(final ASTNode node) {
         return positionMap.get(node);
     }
 
+    /**
+     * Retrieves the AbstractAST tree associated with this MainTree.
+     * 
+     * @return the AbstractAST tree associated with this object
+     */
     public AbstractAST getTree() {
         return this.tree;
     }

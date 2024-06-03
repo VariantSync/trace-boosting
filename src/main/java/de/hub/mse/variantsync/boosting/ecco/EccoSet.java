@@ -3,18 +3,31 @@ package de.hub.mse.variantsync.boosting.ecco;
 import java.util.Collection;
 import java.util.HashSet;
 
+/**
+ * A custom set implementation to handle sets similar to how they are defined by
+ * ECCO.
+ */
 public class EccoSet<E> extends HashSet<E> {
 
+    /**
+     * Constructs a new EccoSet with no elements.
+     */
     public EccoSet() {
         super();
     }
 
+    /**
+     * Constructs a new EccoSet with the elements from the specified collection.
+     *
+     * @param elements the collection of elements to initialize the set with
+     * @throws NullPointerException if the specified collection is null
+     */
     public EccoSet(final Collection<E> elements) {
         super(elements);
     }
 
     /**
-     * replaces an equivalent element in the set with a new version of it
+     * Replaces an equivalent element in the set with a new version of it
      */
     public void overwrite(final E element) {
         this.remove(element);
@@ -108,6 +121,9 @@ public class EccoSet<E> extends HashSet<E> {
         return super.equals(o);
     }
 
+    /**
+     * Returns the power set of this set.
+     */
     public EccoSet<EccoSet<E>> powerSet() {
         return powerSet(this);
     }

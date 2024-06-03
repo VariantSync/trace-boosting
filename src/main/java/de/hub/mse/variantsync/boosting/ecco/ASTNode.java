@@ -11,6 +11,13 @@ import org.logicng.io.parsers.PropositionalParser;
 import java.io.*;
 import java.util.Objects;
 
+/**
+ * Represents a node in an Abstract Syntax Tree (AST).
+ * 
+ * Each ASTNode contains information about a specific code element, such as a
+ * class, method, or statement.
+ * 
+ */
 public class ASTNode implements Serializable {
 
     public enum NODE_TYPE {
@@ -30,6 +37,16 @@ public class ASTNode implements Serializable {
     private ASTNode productEquivalent;
     private int sequenceNumber = 0;
 
+    /**
+     * Constructs a new ASTNode with the specified parameters.
+     * 
+     * @param parent   The parent ASTNode of this node. Can be null if this node is
+     *                 the root of the AST.
+     * @param code     The code snippet represented by this node.
+     * @param position The position of the code snippet in the source file.
+     * @param type     The type of the code element represented by this node.
+     * @param mapping  The formula mapping associated with this node.
+     */
     public ASTNode(final ASTNode parent, final String code, final Position position, final NODE_TYPE type,
             final Formula mapping) {
         this.parent = parent;
@@ -56,14 +73,27 @@ public class ASTNode implements Serializable {
         }
     }
 
+    /**
+     * Sets the equivalent node of this node.
+     *
+     * @param productEquivalent the equivalent AST node
+     */
     public void setProductEquivalent(final ASTNode productEquivalent) {
         this.productEquivalent = productEquivalent;
     }
 
+    /**
+     * Gets the equivalent node of this node.
+     */
     public ASTNode getProductEquivalent() {
         return this.productEquivalent;
     }
 
+    /**
+     * Checks whether the given ASTNode is similar to this one.
+     *
+     * @param eccoNode another ASTNode object
+     */
     public boolean isSimilar(final ASTNode eccoNode) {
         if (this == eccoNode)
             return true;
@@ -75,6 +105,9 @@ public class ASTNode implements Serializable {
                 sequenceNumber == eccoNode.sequenceNumber;
     }
 
+    /**
+     * @return the code associated with this ASTNode
+     */
     public String getCode() {
         return code;
     }
@@ -101,18 +134,30 @@ public class ASTNode implements Serializable {
                 this.parent.sequenceNumber == other.parent.sequenceNumber;
     }
 
+    /**
+     * @return the parent of this ASTNode
+     */
     public ASTNode getParent() {
         return parent;
     }
 
+    /**
+     * Sets the parent of this ASTNode in the AST.
+     */
     public void setParent(final ASTNode parent) {
         this.parent = parent;
     }
 
+    /**
+     * Returns a set of this node's child nodes.
+     */
     public EccoSet<ASTNode> getChildren() {
         return children;
     }
 
+    /**
+     * Return the position (file, line) where the content of this node starts.
+     */
     public Position getStartPosition() {
         if (productEquivalent != null) {
             return productEquivalent.startPosition;
@@ -121,8 +166,10 @@ public class ASTNode implements Serializable {
         }
     }
 
-    // return set of all possible mappings (if the mapping is a DNF formula, each
-    // clause is a possible mapping on its own)
+    /**
+     * Returns set set of all possible mappings (if the mapping is a DNF formula,
+     * each clause is a possible mapping on its own) for this node.
+     */
     public EccoSet<Formula> getMappings() {
         final EccoSet<Formula> mappings = new EccoSet<>();
         if (mapping.type() == FType.OR) {
@@ -135,15 +182,17 @@ public class ASTNode implements Serializable {
         return mappings;
     }
 
-    // return whole mapping as a formula
+    /** Returns the best mapping as a formula */
     public Formula getMapping() {
         return mapping;
     }
 
+    /** Sets a specific mapping for this node */
     public void setMapping(final Formula mapping) {
         this.mapping = mapping;
     }
 
+    /** Gets the type of this node */
     public NODE_TYPE getType() {
         return type;
     }
