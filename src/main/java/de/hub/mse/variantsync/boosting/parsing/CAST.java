@@ -1,9 +1,9 @@
-package de.hub.mse.variantsync.boosting.data.specialization;
-
-import de.hub.mse.variantsync.boosting.data.EccoNode;
-import de.hub.mse.variantsync.boosting.data.EccoSet;
+package de.hub.mse.variantsync.boosting.parsing;
 
 import java.io.File;
+
+import de.hub.mse.variantsync.boosting.ecco.EccoNode;
+import de.hub.mse.variantsync.boosting.ecco.EccoSet;
 
 public class CAST extends LineAST {
     private static final String[] fileTypes = new String[] { ".c", ".h" };

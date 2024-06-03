@@ -1,7 +1,8 @@
-package de.hub.mse.variantsync.boosting.data;
+package de.hub.mse.variantsync.boosting.ecco;
 
 import de.hub.mse.variantsync.boosting.ECCO_LIGHT;
-import de.hub.mse.variantsync.boosting.data.position.Position;
+import de.hub.mse.variantsync.boosting.position.Position;
+
 import org.logicng.formulas.FType;
 import org.logicng.formulas.Formula;
 import org.logicng.io.parsers.ParserException;

@@ -1,7 +1,9 @@
-package de.hub.mse.variantsync.boosting.data;
+package de.hub.mse.variantsync.boosting.parsing;
 
-import de.hub.mse.variantsync.boosting.data.position.FilePosition;
-import de.hub.mse.variantsync.boosting.data.position.RootPosition;
+import de.hub.mse.variantsync.boosting.ecco.EccoNode;
+import de.hub.mse.variantsync.boosting.ecco.EccoSet;
+import de.hub.mse.variantsync.boosting.position.FilePosition;
+import de.hub.mse.variantsync.boosting.position.RootPosition;
 
 import java.io.File;
 import java.io.Serializable;

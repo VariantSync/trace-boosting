@@ -1,4 +1,4 @@
-package de.hub.mse.variantsync.boosting.data.position;
+package de.hub.mse.variantsync.boosting.position;
 
 import java.io.Serializable;
 import java.nio.file.Path;

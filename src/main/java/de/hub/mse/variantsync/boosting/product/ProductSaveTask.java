@@ -1,6 +1,5 @@
-package de.hub.mse.variantsync.boosting.threading;
+package de.hub.mse.variantsync.boosting.product;
 
-import de.hub.mse.variantsync.boosting.data.Product;
 import org.tinylog.Logger;
 
 import java.io.FileOutputStream;

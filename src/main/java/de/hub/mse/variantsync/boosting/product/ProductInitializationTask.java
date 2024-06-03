@@ -1,11 +1,14 @@
-package de.hub.mse.variantsync.boosting.threading;
+package de.hub.mse.variantsync.boosting.product;
 
-import de.hub.mse.variantsync.boosting.data.*;
-import de.hub.mse.variantsync.boosting.data.specialization.CAST;
-import de.hub.mse.variantsync.boosting.data.specialization.ESupportedLanguages;
-import de.hub.mse.variantsync.boosting.data.specialization.JavaAST;
-import de.hub.mse.variantsync.boosting.data.specialization.LineAST;
 import org.tinylog.Logger;
+
+import de.hub.mse.variantsync.boosting.ecco.EccoSet;
+import de.hub.mse.variantsync.boosting.ecco.Feature;
+import de.hub.mse.variantsync.boosting.parsing.AbstractAST;
+import de.hub.mse.variantsync.boosting.parsing.CAST;
+import de.hub.mse.variantsync.boosting.parsing.ESupportedLanguages;
+import de.hub.mse.variantsync.boosting.parsing.JavaAST;
+import de.hub.mse.variantsync.boosting.parsing.LineAST;
 
 import java.io.File;
 import java.io.IOException;

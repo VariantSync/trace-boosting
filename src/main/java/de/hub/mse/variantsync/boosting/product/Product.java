@@ -1,14 +1,18 @@
-package de.hub.mse.variantsync.boosting.data;
+package de.hub.mse.variantsync.boosting.product;
 
 import de.hub.mse.variantsync.boosting.ECCO_LIGHT;
-import de.hub.mse.variantsync.boosting.data.position.Position;
-import de.hub.mse.variantsync.boosting.data.specialization.JavaAST;
-import de.hub.mse.variantsync.boosting.data.specialization.LineAST;
+import de.hub.mse.variantsync.boosting.ecco.EccoNode;
+import de.hub.mse.variantsync.boosting.ecco.EccoSet;
+import de.hub.mse.variantsync.boosting.ecco.Feature;
+import de.hub.mse.variantsync.boosting.parsing.AbstractAST;
+import de.hub.mse.variantsync.boosting.parsing.JavaAST;
+import de.hub.mse.variantsync.boosting.parsing.LineAST;
+import de.hub.mse.variantsync.boosting.position.Position;
+
 import org.logicng.formulas.Formula;
 import org.logicng.io.parsers.ParserException;
 
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;

@@ -1,4 +1,4 @@
-package de.hub.mse.variantsync.boosting.data;
+package de.hub.mse.variantsync.boosting.product;
 
 import java.nio.file.Path;
 

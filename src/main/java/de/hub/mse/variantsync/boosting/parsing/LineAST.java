@@ -1,9 +1,11 @@
-package de.hub.mse.variantsync.boosting.data.specialization;
+package de.hub.mse.variantsync.boosting.parsing;
 
-import de.hub.mse.variantsync.boosting.data.*;
-import de.hub.mse.variantsync.boosting.data.position.LinePosition;
-import de.hub.mse.variantsync.boosting.data.position.Position;
 import org.tinylog.Logger;
+
+import de.hub.mse.variantsync.boosting.ecco.EccoNode;
+import de.hub.mse.variantsync.boosting.ecco.EccoSet;
+import de.hub.mse.variantsync.boosting.position.LinePosition;
+import de.hub.mse.variantsync.boosting.position.Position;
 
 import java.io.File;
 import java.io.IOException;

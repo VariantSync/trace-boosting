@@ -1,7 +1,4 @@
-package de.hub.mse.variantsync.boosting.util;
-
-import de.hub.mse.variantsync.boosting.data.Product;
-import de.hub.mse.variantsync.boosting.threading.ProductLoadTask;
+package de.hub.mse.variantsync.boosting.product;
 
 import java.util.Iterator;
 import java.util.LinkedList;

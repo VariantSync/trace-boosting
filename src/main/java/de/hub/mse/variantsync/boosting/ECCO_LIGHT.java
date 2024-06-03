@@ -1,17 +1,13 @@
 package de.hub.mse.variantsync.boosting;
 
-import de.hub.mse.variantsync.boosting.data.*;
-import de.hub.mse.variantsync.boosting.data.Module;
-import de.hub.mse.variantsync.boosting.data.ProductPassport;
-import de.hub.mse.variantsync.boosting.data.specialization.CAST;
-import de.hub.mse.variantsync.boosting.data.specialization.ESupportedLanguages;
-import de.hub.mse.variantsync.boosting.data.specialization.JavaAST;
-import de.hub.mse.variantsync.boosting.data.specialization.LineAST;
-import de.hub.mse.variantsync.boosting.threading.ProductInitializationTask;
-import de.hub.mse.variantsync.boosting.threading.ProductLoadTask;
-import de.hub.mse.variantsync.boosting.threading.ProductSaveTask;
 import org.tinylog.Logger;
-import de.hub.mse.variantsync.boosting.util.ProductLoader;
+
+import de.hub.mse.variantsync.boosting.ecco.*;
+import de.hub.mse.variantsync.boosting.ecco.Module;
+import de.hub.mse.variantsync.boosting.parsing.*;
+import de.hub.mse.variantsync.boosting.position.*;
+import de.hub.mse.variantsync.boosting.product.*;
+
 import org.logicng.formulas.FType;
 import org.logicng.formulas.Formula;
 import org.logicng.formulas.FormulaFactory;

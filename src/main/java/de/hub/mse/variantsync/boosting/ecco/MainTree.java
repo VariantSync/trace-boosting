@@ -1,8 +1,11 @@
-package de.hub.mse.variantsync.boosting.data;
+package de.hub.mse.variantsync.boosting.ecco;
 
 import de.hub.mse.variantsync.boosting.ECCO_LIGHT;
-import de.hub.mse.variantsync.boosting.data.position.ProductPosition;
-import de.hub.mse.variantsync.boosting.data.position.UnspecifiedPosition;
+import de.hub.mse.variantsync.boosting.parsing.AbstractAST;
+import de.hub.mse.variantsync.boosting.position.ProductPosition;
+import de.hub.mse.variantsync.boosting.position.UnspecifiedPosition;
+import de.hub.mse.variantsync.boosting.product.Product;
+
 import org.logicng.formulas.Formula;
 
 import java.io.Serializable;
@@ -24,7 +27,7 @@ public class MainTree implements Serializable {
     // in the resulting main tree corresponding to the nodes of this AST
     public EccoSet<EccoNode> unite(final Product product) {
         final EccoSet<EccoNode> result = new EccoSet<>();
-        uniteChildren(result, product.getProductAst().root, tree.getRoot(), product);
+        uniteChildren(result, product.getProductAst().getRoot(), tree.getRoot(), product);
         tree.getAstNodes().addAll(result);
         return result;
     }
