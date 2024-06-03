@@ -5,7 +5,6 @@ import org.tinylog.Logger;
 import de.hub.mse.variantsync.boosting.ecco.*;
 import de.hub.mse.variantsync.boosting.ecco.Module;
 import de.hub.mse.variantsync.boosting.parsing.*;
-import de.hub.mse.variantsync.boosting.position.*;
 import de.hub.mse.variantsync.boosting.product.*;
 
 import org.logicng.formulas.FType;
@@ -387,10 +386,10 @@ public class TraceBoosting {
      * which the node
      * appears does not have the same mapping)
      */
-    private static String getTrace(final EccoNode astNode, final Formula mapping) {
+    private static String getTrace(final ASTNode astNode, final Formula mapping) {
         final String result;
-        if (astNode.getType() != EccoNode.NODE_TYPE.CLASS_OR_INTERFACE_DECLARATION
-                && astNode.getType() != EccoNode.NODE_TYPE.METHOD_DECLARATION) {
+        if (astNode.getType() != ASTNode.NODE_TYPE.CLASS_OR_INTERFACE_DECLARATION
+                && astNode.getType() != ASTNode.NODE_TYPE.METHOD_DECLARATION) {
             // node could possibly be a refinement
             result = getName(" Refinement", astNode, false, mapping);
         } else {
@@ -399,7 +398,7 @@ public class TraceBoosting {
         return result;
     }
 
-    private static String getName(String suffix, final EccoNode astNode, boolean insideClass,
+    private static String getName(String suffix, final ASTNode astNode, boolean insideClass,
             final Formula mapping) {
         if (astNode.getParent() != null) {
             String missing_blank_space = "";
@@ -442,7 +441,7 @@ public class TraceBoosting {
     public void evaluate(final AbstractAST mainTree, final String outputFolder) {
         Logger.info("start evaluation");
         final Map<String, List<String>> fileToTraceMap = new HashMap<>();
-        for (final EccoNode astNode : mainTree.getAstNodes()) {
+        for (final ASTNode astNode : mainTree.getAstNodes()) {
             final EccoSet<Formula> mappings = astNode.getMappings();
             for (final Formula mapping : mappings) {
                 // if the mapping is "TRUE"
@@ -508,7 +507,7 @@ public class TraceBoosting {
             }
 
             // now put mappings from associations back on individual nodes
-            for (final EccoNode node : association.getAstNodes()) {
+            for (final ASTNode node : association.getAstNodes()) {
                 if (node.getMapping() == null) {
                     node.setMapping(association.getMapping());
                 }
@@ -527,7 +526,7 @@ public class TraceBoosting {
                 // Formula does not implement equals and hashCode; we have to use Strings to
                 // store them :(
                 Map<String, Formula> existingMappings = new HashMap<>();
-                for (EccoNode node : assoc.getAstNodes()) {
+                for (ASTNode node : assoc.getAstNodes()) {
                     var mapping = node.getMapping();
                     if (mapping != null) {
                         existingMappings.putIfAbsent(mapping.toString(), mapping);
@@ -721,7 +720,7 @@ public class TraceBoosting {
                         association.getAstNodes());
 
                 // Intersect ASTs
-                final EccoSet<EccoNode> intNodes = updatedAssociation.getAstNodes().intersect(aNew.getAstNodes());
+                final EccoSet<ASTNode> intNodes = updatedAssociation.getAstNodes().intersect(aNew.getAstNodes());
 
                 // compute intersection
                 final Association aInt = new Association(

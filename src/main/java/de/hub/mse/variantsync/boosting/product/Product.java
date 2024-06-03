@@ -1,7 +1,7 @@
 package de.hub.mse.variantsync.boosting.product;
 
 import de.hub.mse.variantsync.boosting.TraceBoosting;
-import de.hub.mse.variantsync.boosting.ecco.EccoNode;
+import de.hub.mse.variantsync.boosting.ecco.ASTNode;
 import de.hub.mse.variantsync.boosting.ecco.EccoSet;
 import de.hub.mse.variantsync.boosting.ecco.Feature;
 import de.hub.mse.variantsync.boosting.parsing.AbstractAST;
@@ -25,9 +25,9 @@ public class Product implements Serializable {
     private AbstractAST productAST;
     // the AST nodes of the main tree that correspond to the AST nodes of the
     // product AST
-    private EccoSet<EccoNode> astNodesMainTree;
+    private EccoSet<ASTNode> astNodesMainTree;
 
-    public Product(final String name, final EccoSet<EccoNode> astNodesMainTree, final AbstractAST productAST,
+    public Product(final String name, final EccoSet<ASTNode> astNodesMainTree, final AbstractAST productAST,
             final EccoSet<Feature> features) {
         this.name = name;
         this.astNodesMainTree = astNodesMainTree;
@@ -37,19 +37,19 @@ public class Product implements Serializable {
 
     public Product(final Product other) {
         this.name = other.name;
-        final EccoSet<EccoNode> nodesToCopy = new EccoSet<>(other.astNodesMainTree);
+        final EccoSet<ASTNode> nodesToCopy = new EccoSet<>(other.astNodesMainTree);
         nodesToCopy.addAll(other.productAST.getAstNodes());
         nodesToCopy.add(other.productAST.getRoot());
-        final Map<EccoNode, EccoNode> originalToCopyMap = copyAstNodes(nodesToCopy);
+        final Map<ASTNode, ASTNode> originalToCopyMap = copyAstNodes(nodesToCopy);
 
-        final EccoSet<EccoNode> astNodes = new EccoSet<>(
+        final EccoSet<ASTNode> astNodes = new EccoSet<>(
                 other.astNodesMainTree
                         .stream()
                         .map(originalToCopyMap::get)
                         .collect(Collectors.toCollection(EccoSet::new)));
         this.astNodesMainTree = new EccoSet<>(astNodes);
 
-        final EccoSet<EccoNode> treeNodes = new EccoSet<>(
+        final EccoSet<ASTNode> treeNodes = new EccoSet<>(
                 other.productAST.getAstNodes()
                         .stream()
                         .map(originalToCopyMap::get)
@@ -74,7 +74,7 @@ public class Product implements Serializable {
         return features;
     }
 
-    public EccoSet<EccoNode> getAstNodesMainTree() {
+    public EccoSet<ASTNode> getAstNodesMainTree() {
         return astNodesMainTree;
     }
 
@@ -83,10 +83,10 @@ public class Product implements Serializable {
     // in the main tree
     public Formula getMappingFromPosition(final Position position) {
         // look for the right node in the product AST's nodes
-        for (final EccoNode oldNode : productAST.getAstNodes()) {
+        for (final ASTNode oldNode : productAST.getAstNodes()) {
             if (position.equals(oldNode.getStartPosition())) {
                 // find and return the mapping of the corresponding node in the main tree
-                for (final EccoNode newNode : astNodesMainTree) {
+                for (final ASTNode newNode : astNodesMainTree) {
                     if (newNode.isSimilar(oldNode)) {
                         return newNode.getMapping();
                     }
@@ -103,12 +103,12 @@ public class Product implements Serializable {
 
     // returns the node at given position in the product or (if it was already
     // merged into the main tree) the corresponding node in the main tree
-    public EccoNode getNodeFromPosition(final Position position) {
+    public ASTNode getNodeFromPosition(final Position position) {
         // look for the right node in the product AST's nodes
-        for (final EccoNode oldNode : productAST.getAstNodes()) {
+        for (final ASTNode oldNode : productAST.getAstNodes()) {
             if (position.equals(oldNode.getStartPosition())) {
                 // find and return the corresponding node in the main tree
-                for (final EccoNode newNode : astNodesMainTree) {
+                for (final ASTNode newNode : astNodesMainTree) {
                     if (newNode.isSimilar(oldNode)) {
                         return newNode;
                     }
@@ -123,14 +123,14 @@ public class Product implements Serializable {
         return productAST;
     }
 
-    public void setAstNodesMainTree(final EccoSet<EccoNode> astNodesMainTree) {
+    public void setAstNodesMainTree(final EccoSet<ASTNode> astNodesMainTree) {
         this.astNodesMainTree = astNodesMainTree;
     }
 
-    private static Map<EccoNode, EccoNode> copyAstNodes(final EccoSet<EccoNode> astNodes) {
-        final Map<EccoNode, EccoNode> originalToCopyMap = new HashMap<>();
+    private static Map<ASTNode, ASTNode> copyAstNodes(final EccoSet<ASTNode> astNodes) {
+        final Map<ASTNode, ASTNode> originalToCopyMap = new HashMap<>();
         for (final var node : astNodes) {
-            final EccoNode nodeCopy;
+            final ASTNode nodeCopy;
             if (!originalToCopyMap.containsKey(node)) {
                 nodeCopy = copyNode(node);
                 originalToCopyMap.put(node, nodeCopy);
@@ -144,7 +144,7 @@ public class Product implements Serializable {
                 if (parent == null) {
                     nodeCopy.setParent(null);
                 } else {
-                    final EccoNode parentCopy;
+                    final ASTNode parentCopy;
                     if (!originalToCopyMap.containsKey(parent)) {
                         parentCopy = copyNode(parent);
                         originalToCopyMap.put(parent, parentCopy);
@@ -158,9 +158,9 @@ public class Product implements Serializable {
             // Handle children
             {
                 final var children = node.getChildren();
-                final EccoSet<EccoNode> childrenOfCopy = nodeCopy.getChildren();
+                final EccoSet<ASTNode> childrenOfCopy = nodeCopy.getChildren();
                 for (final var child : children) {
-                    final EccoNode childCopy;
+                    final ASTNode childCopy;
                     if (!originalToCopyMap.containsKey(child)) {
                         childCopy = copyNode(child);
                         originalToCopyMap.put(child, childCopy);
@@ -173,7 +173,7 @@ public class Product implements Serializable {
 
             // Handle product equivalent
             {
-                final EccoNode productEquivalentCopy;
+                final ASTNode productEquivalentCopy;
                 final var productEquivalent = node.getProductEquivalent();
                 if (productEquivalent == null) {
                     nodeCopy.setProductEquivalent(null);
@@ -191,7 +191,7 @@ public class Product implements Serializable {
         return originalToCopyMap;
     }
 
-    private static EccoNode copyNode(final EccoNode node) {
+    private static ASTNode copyNode(final ASTNode node) {
         try {
             final Formula mapping;
             if (node.getMapping() == null) {
@@ -199,7 +199,7 @@ public class Product implements Serializable {
             } else {
                 mapping = TraceBoosting.f.parse(node.getMapping().toString());
             }
-            return new EccoNode(null, node.getCode(), node.getStartPosition(), node.getType(), mapping);
+            return new ASTNode(null, node.getCode(), node.getStartPosition(), node.getType(), mapping);
         } catch (final ParserException e) {
             throw new RuntimeException("Was not able to parse mapping.");
         }

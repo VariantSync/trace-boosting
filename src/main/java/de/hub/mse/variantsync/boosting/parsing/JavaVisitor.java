@@ -8,13 +8,13 @@ import com.github.javaparser.ast.modules.ModuleDeclaration;
 import com.github.javaparser.ast.stmt.*;
 import com.github.javaparser.ast.visitor.VoidVisitorWithDefaults;
 
-import de.hub.mse.variantsync.boosting.ecco.EccoNode;
+import de.hub.mse.variantsync.boosting.ecco.ASTNode;
 import de.hub.mse.variantsync.boosting.position.LinePosition;
 import de.hub.mse.variantsync.boosting.position.Position;
 
 import org.tinylog.Logger;
 
-public class JavaVisitor extends VoidVisitorWithDefaults<EccoNode> {
+public class JavaVisitor extends VoidVisitorWithDefaults<ASTNode> {
     private final String visitedFile;
 
     public JavaVisitor(final String visitedFile) {
@@ -26,10 +26,10 @@ public class JavaVisitor extends VoidVisitorWithDefaults<EccoNode> {
     }
 
     @Override
-    public void visit(final CompilationUnit n, final EccoNode parent) {
+    public void visit(final CompilationUnit n, final ASTNode parent) {
         Logger.debug("Visiting CompilationUnit " + n.toString());
         visit(n.getTypes(), parent);
-        for (final EccoNode child : parent.getChildren()) {
+        for (final ASTNode child : parent.getChildren()) {
             if (n.getType(0).getNameAsString().equals(child.getCode())) {
                 visit(n.getImports(), child);
                 break;
@@ -38,7 +38,7 @@ public class JavaVisitor extends VoidVisitorWithDefaults<EccoNode> {
     }
 
     @Override
-    public void visit(final NodeList nodeList, final EccoNode parent) {
+    public void visit(final NodeList nodeList, final ASTNode parent) {
         Logger.debug("Visiting NodeList");
         for (final Object node : nodeList) {
             ((Node) node).accept(this, parent);
@@ -46,28 +46,28 @@ public class JavaVisitor extends VoidVisitorWithDefaults<EccoNode> {
     }
 
     @Override
-    public void visit(final IfStmt n, final EccoNode parent) {
+    public void visit(final IfStmt n, final ASTNode parent) {
         Logger.debug("Visiting if statement");
-        final EccoNode child = new EccoNode(parent, n.getCondition().toString(),
+        final ASTNode child = new ASTNode(parent, n.getCondition().toString(),
                 n.getRange().isPresent() ? parsePosition(n.getRange().get().begin) : null,
-                EccoNode.NODE_TYPE.IF_STATEMENT, null);
+                ASTNode.NODE_TYPE.IF_STATEMENT, null);
         parent.addChild(child);
-        final EccoNode thenChild = new EccoNode(child, null,
+        final ASTNode thenChild = new ASTNode(child, null,
                 n.getThenStmt().getRange().isPresent() ? parsePosition(n.getRange().get().begin) : null,
-                EccoNode.NODE_TYPE.THEN_STATEMENT, null);
+                ASTNode.NODE_TYPE.THEN_STATEMENT, null);
         child.addChild(thenChild);
         n.getThenStmt().accept(this, thenChild);
         if (n.getElseStmt().isPresent()) {
-            final EccoNode elseChild = new EccoNode(child, null,
+            final ASTNode elseChild = new ASTNode(child, null,
                     n.getElseStmt().get().getRange().isPresent() ? parsePosition(n.getRange().get().begin) : null,
-                    EccoNode.NODE_TYPE.ELSE_STATEMENT, null);
+                    ASTNode.NODE_TYPE.ELSE_STATEMENT, null);
             child.addChild(elseChild);
             n.getElseStmt().get().accept(this, elseChild);
         }
     }
 
     @Override
-    public void visit(final MethodDeclaration n, final EccoNode parent) {
+    public void visit(final MethodDeclaration n, final ASTNode parent) {
         Logger.debug("Visiting method declaration");
         final NodeList<Parameter> params = n.getParameters();
         StringBuilder paramList = new StringBuilder();
@@ -78,133 +78,133 @@ public class JavaVisitor extends VoidVisitorWithDefaults<EccoNode> {
                 paramList.append(",").append(parameter.getTypeAsString());
             }
         }
-        final EccoNode child = new EccoNode(parent, "" + n.getNameAsString() + "(" + paramList + ")",
+        final ASTNode child = new ASTNode(parent, "" + n.getNameAsString() + "(" + paramList + ")",
                 n.getRange().isPresent() ? parsePosition(n.getRange().get().begin) : null,
-                EccoNode.NODE_TYPE.METHOD_DECLARATION, null);
+                ASTNode.NODE_TYPE.METHOD_DECLARATION, null);
         parent.addChild(child);
         if (n.getBody().isPresent())
             visit(n.getBody().get(), child);
     }
 
     @Override
-    public void visit(final ClassOrInterfaceDeclaration n, final EccoNode parent) {
+    public void visit(final ClassOrInterfaceDeclaration n, final ASTNode parent) {
         Logger.debug("Visiting class or interface");
-        final EccoNode child = new EccoNode(parent, n.getNameAsString(),
+        final ASTNode child = new ASTNode(parent, n.getNameAsString(),
                 n.getRange().isPresent() ? parsePosition(n.getRange().get().begin) : null,
-                EccoNode.NODE_TYPE.CLASS_OR_INTERFACE_DECLARATION, null);
+                ASTNode.NODE_TYPE.CLASS_OR_INTERFACE_DECLARATION, null);
         parent.addChild(child);
         visit(n.getMembers(), child);
     }
 
     @Override
-    public void visit(final BlockStmt n, final EccoNode parent) {
+    public void visit(final BlockStmt n, final ASTNode parent) {
         Logger.debug("Visiting block statement");
         visit(n.getStatements(), parent);
     }
 
     @Override
-    public void visit(final ForStmt n, final EccoNode parent) {
+    public void visit(final ForStmt n, final ASTNode parent) {
         Logger.debug("Visiting for statement");
-        final EccoNode child;
+        final ASTNode child;
         if (n.getCompare().isPresent()) {
-            child = new EccoNode(parent,
+            child = new ASTNode(parent,
                     "for(" + n.getInitialization() + "; " + n.getCompare().get() + "; " + n.getUpdate() + ")",
                     n.getRange().isPresent() ? parsePosition(n.getRange().get().begin) : null,
-                    EccoNode.NODE_TYPE.FOR_STATEMENT, null);
+                    ASTNode.NODE_TYPE.FOR_STATEMENT, null);
             n.getCompare().get().accept(this, child);
         } else
-            child = new EccoNode(parent, "for(" + n.getInitialization() + "; ; " + n.getUpdate() + ")",
+            child = new ASTNode(parent, "for(" + n.getInitialization() + "; ; " + n.getUpdate() + ")",
                     n.getRange().isPresent() ? parsePosition(n.getRange().get().begin) : null,
-                    EccoNode.NODE_TYPE.FOR_STATEMENT, null);
+                    ASTNode.NODE_TYPE.FOR_STATEMENT, null);
         parent.addChild(child);
         n.getBody().accept(this, child);
     }
 
     @Override
-    public void visit(final ForEachStmt n, final EccoNode parent) {
+    public void visit(final ForEachStmt n, final ASTNode parent) {
         Logger.debug("Visiting for-each statement");
-        final EccoNode child = new EccoNode(parent, "for(" + n.getVariable() + ": " + n.getIterable() + ")",
+        final ASTNode child = new ASTNode(parent, "for(" + n.getVariable() + ": " + n.getIterable() + ")",
                 n.getRange().isPresent() ? parsePosition(n.getRange().get().begin) : null,
-                EccoNode.NODE_TYPE.FOREACH_STATEMENT, null);
+                ASTNode.NODE_TYPE.FOREACH_STATEMENT, null);
         parent.addChild(child);
         n.getBody().accept(this, child);
     }
 
     @Override
-    public void visit(final ConstructorDeclaration n, final EccoNode parent) {
+    public void visit(final ConstructorDeclaration n, final ASTNode parent) {
         Logger.debug("Visiting constructor");
-        final EccoNode child = new EccoNode(parent, n.getDeclarationAsString(),
+        final ASTNode child = new ASTNode(parent, n.getDeclarationAsString(),
                 n.getRange().isPresent() ? parsePosition(n.getRange().get().begin) : null,
-                EccoNode.NODE_TYPE.CONSTRUCTOR_DECLARATION, null);
+                ASTNode.NODE_TYPE.CONSTRUCTOR_DECLARATION, null);
         parent.addChild(child);
         visit(n.getBody(), child);
     }
 
     @Override
-    public void visit(final DoStmt n, final EccoNode parent) {
+    public void visit(final DoStmt n, final ASTNode parent) {
         Logger.debug("Visiting do statement");
-        final EccoNode child = new EccoNode(parent, "do statement",
+        final ASTNode child = new ASTNode(parent, "do statement",
                 n.getRange().isPresent() ? parsePosition(n.getRange().get().begin) : null,
-                EccoNode.NODE_TYPE.DO_STATEMENT, null);
+                ASTNode.NODE_TYPE.DO_STATEMENT, null);
         parent.addChild(child);
         n.getBody().accept(this, child);
     }
 
     @Override
-    public void visit(final EnumConstantDeclaration n, final EccoNode parent) {
+    public void visit(final EnumConstantDeclaration n, final ASTNode parent) {
         Logger.debug("Visiting enum constant declaration");
-        final EccoNode child = new EccoNode(parent, n.getNameAsString(),
+        final ASTNode child = new ASTNode(parent, n.getNameAsString(),
                 n.getRange().isPresent() ? parsePosition(n.getRange().get().begin) : null,
-                EccoNode.NODE_TYPE.ENUM_CONSTANT_DECLARATION, null);
+                ASTNode.NODE_TYPE.ENUM_CONSTANT_DECLARATION, null);
         parent.addChild(child);
         n.getArguments().accept(this, child);
     }
 
     @Override
-    public void visit(final EnumDeclaration n, final EccoNode parent) {
+    public void visit(final EnumDeclaration n, final ASTNode parent) {
         Logger.debug("Visiting enum declaration");
-        final EccoNode child = new EccoNode(parent, n.getNameAsString(),
+        final ASTNode child = new ASTNode(parent, n.getNameAsString(),
                 n.getRange().isPresent() ? parsePosition(n.getRange().get().begin) : null,
-                EccoNode.NODE_TYPE.ENUM_DECLARATION, null);
+                ASTNode.NODE_TYPE.ENUM_DECLARATION, null);
         parent.addChild(child);
         n.getEntries().accept(this, child);
     }
 
     @Override
-    public void visit(final SwitchEntry n, final EccoNode parent) {
+    public void visit(final SwitchEntry n, final ASTNode parent) {
         Logger.debug("Visiting switch entry");
-        final EccoNode child = new EccoNode(parent, "case " + n.getLabels().toString(),
+        final ASTNode child = new ASTNode(parent, "case " + n.getLabels().toString(),
                 n.getRange().isPresent() ? parsePosition(n.getRange().get().begin) : null,
-                EccoNode.NODE_TYPE.SWITCH_ENTRY, null);
+                ASTNode.NODE_TYPE.SWITCH_ENTRY, null);
         parent.addChild(child);
         n.getStatements().accept(this, child);
     }
 
     @Override
-    public void visit(final SwitchStmt n, final EccoNode parent) {
+    public void visit(final SwitchStmt n, final ASTNode parent) {
         Logger.debug("Visiting switch statement");
-        final EccoNode child = new EccoNode(parent, "switch(" + n.getSelector().toString() + ")",
+        final ASTNode child = new ASTNode(parent, "switch(" + n.getSelector().toString() + ")",
                 n.getRange().isPresent() ? parsePosition(n.getRange().get().begin) : null,
-                EccoNode.NODE_TYPE.SWITCH_STMT, null);
+                ASTNode.NODE_TYPE.SWITCH_STMT, null);
         parent.addChild(child);
         n.getEntries().accept(this, child);
     }
 
     @Override
-    public void visit(final ModuleDeclaration n, final EccoNode parent) {
+    public void visit(final ModuleDeclaration n, final ASTNode parent) {
         Logger.debug("Visiting module declaration");
-        final EccoNode child = new EccoNode(parent, n.getNameAsString(),
+        final ASTNode child = new ASTNode(parent, n.getNameAsString(),
                 n.getRange().isPresent() ? parsePosition(n.getRange().get().begin) : null,
-                EccoNode.NODE_TYPE.MODULE_DECLARATION, null);
+                ASTNode.NODE_TYPE.MODULE_DECLARATION, null);
         parent.addChild(child);
         n.getAnnotations().accept(this, child);
     }
 
     @Override
-    public void defaultAction(final Node n, final EccoNode parent) {
+    public void defaultAction(final Node n, final ASTNode parent) {
         Logger.debug("Visiting default entry");
-        final EccoNode child = new EccoNode(parent, n.toString(),
-                n.getRange().isPresent() ? parsePosition(n.getRange().get().begin) : null, EccoNode.NODE_TYPE.DEFAULT,
+        final ASTNode child = new ASTNode(parent, n.toString(),
+                n.getRange().isPresent() ? parsePosition(n.getRange().get().begin) : null, ASTNode.NODE_TYPE.DEFAULT,
                 null);
         parent.addChild(child);
     }

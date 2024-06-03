@@ -4,7 +4,7 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.utils.CodeGenerationUtils;
 import com.github.javaparser.utils.SourceRoot;
 
-import de.hub.mse.variantsync.boosting.ecco.EccoNode;
+import de.hub.mse.variantsync.boosting.ecco.ASTNode;
 import de.hub.mse.variantsync.boosting.ecco.EccoSet;
 
 import java.io.File;
@@ -18,12 +18,12 @@ public class JavaAST extends AbstractAST {
         super(rootFile, ".java");
     }
 
-    public JavaAST(final EccoNode root, final EccoSet<EccoNode> astNodes) {
+    public JavaAST(final ASTNode root, final EccoSet<ASTNode> astNodes) {
         super(root, astNodes, ".java");
     }
 
     @Override
-    protected void visitFileContent(final EccoNode fileNode, final File fileToVisit) {
+    protected void visitFileContent(final ASTNode fileNode, final File fileToVisit) {
         final SourceRoot sourceRoot = new SourceRoot(CodeGenerationUtils.mavenModuleRoot(JavaAST.class)
                 .resolve(fileToVisit.getParentFile().getAbsolutePath()));
         final CompilationUnit cu = sourceRoot.parse("", fileToVisit.getName());

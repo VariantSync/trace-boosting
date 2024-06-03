@@ -11,7 +11,7 @@ import org.logicng.io.parsers.PropositionalParser;
 import java.io.*;
 import java.util.Objects;
 
-public class EccoNode implements Serializable {
+public class ASTNode implements Serializable {
 
     public enum NODE_TYPE {
         ROOT, FOLDER, FILE, LINE, DEFAULT,
@@ -22,15 +22,15 @@ public class EccoNode implements Serializable {
     }
 
     private final String code;
-    private EccoNode parent;
-    private final EccoSet<EccoNode> children;
+    private ASTNode parent;
+    private final EccoSet<ASTNode> children;
     private final NODE_TYPE type;
     private transient Position startPosition;
     private transient Formula mapping;
-    private EccoNode productEquivalent;
+    private ASTNode productEquivalent;
     private int sequenceNumber = 0;
 
-    public EccoNode(final EccoNode parent, final String code, final Position position, final NODE_TYPE type,
+    public ASTNode(final ASTNode parent, final String code, final Position position, final NODE_TYPE type,
             final Formula mapping) {
         this.parent = parent;
         this.code = code;
@@ -50,21 +50,21 @@ public class EccoNode implements Serializable {
      * Correct matching of the sequence numbers would require further investigation
      * of the nodes' children and was omitted here.
      */
-    public void addChild(final EccoNode child) {
+    public void addChild(final ASTNode child) {
         while (!children.add(child)) {
             child.sequenceNumber += 1;
         }
     }
 
-    public void setProductEquivalent(final EccoNode productEquivalent) {
+    public void setProductEquivalent(final ASTNode productEquivalent) {
         this.productEquivalent = productEquivalent;
     }
 
-    public EccoNode getProductEquivalent() {
+    public ASTNode getProductEquivalent() {
         return this.productEquivalent;
     }
 
-    public boolean isSimilar(final EccoNode eccoNode) {
+    public boolean isSimilar(final ASTNode eccoNode) {
         if (this == eccoNode)
             return true;
         if (eccoNode == null || getClass() != eccoNode.getClass())
@@ -91,7 +91,7 @@ public class EccoNode implements Serializable {
         }
     }
 
-    private boolean similarParent(final EccoNode other) {
+    private boolean similarParent(final ASTNode other) {
         if (this.parent == other.parent)
             return true;
         if (this.parent == null || this.parent.getClass() != other.parent.getClass())
@@ -101,15 +101,15 @@ public class EccoNode implements Serializable {
                 this.parent.sequenceNumber == other.parent.sequenceNumber;
     }
 
-    public EccoNode getParent() {
+    public ASTNode getParent() {
         return parent;
     }
 
-    public void setParent(final EccoNode parent) {
+    public void setParent(final ASTNode parent) {
         this.parent = parent;
     }
 
-    public EccoSet<EccoNode> getChildren() {
+    public EccoSet<ASTNode> getChildren() {
         return children;
     }
 

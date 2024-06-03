@@ -2,7 +2,7 @@ package de.hub.mse.variantsync.boosting.parsing;
 
 import java.io.File;
 
-import de.hub.mse.variantsync.boosting.ecco.EccoNode;
+import de.hub.mse.variantsync.boosting.ecco.ASTNode;
 import de.hub.mse.variantsync.boosting.ecco.EccoSet;
 
 public class CAST extends LineAST {
@@ -16,7 +16,7 @@ public class CAST extends LineAST {
         super(rootFile, fileTypes);
     }
 
-    public CAST(final EccoNode root, final EccoSet<EccoNode> astNodes) {
+    public CAST(final ASTNode root, final EccoSet<ASTNode> astNodes) {
         super(root, astNodes, fileTypes);
     }
 }

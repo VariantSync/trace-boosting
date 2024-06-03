@@ -14,8 +14,8 @@ import java.util.*;
 public class MainTree implements Serializable {
 
     private final AbstractAST tree;
-    private final Map<EccoNode, Set<ProductPosition>> positionMap;
-    private Map<ProductPosition, EccoNode> inversePositionMap;
+    private final Map<ASTNode, Set<ProductPosition>> positionMap;
+    private Map<ProductPosition, ASTNode> inversePositionMap;
 
     public MainTree(final AbstractAST tree) {
         this.tree = tree;
@@ -25,20 +25,20 @@ public class MainTree implements Serializable {
 
     // merge this AST into another AST (main tree) and return the set of all nodes
     // in the resulting main tree corresponding to the nodes of this AST
-    public EccoSet<EccoNode> unite(final Product product) {
-        final EccoSet<EccoNode> result = new EccoSet<>();
+    public EccoSet<ASTNode> unite(final Product product) {
+        final EccoSet<ASTNode> result = new EccoSet<>();
         uniteChildren(result, product.getProductAst().getRoot(), tree.getRoot(), product);
         tree.getAstNodes().addAll(result);
         return result;
     }
 
-    private void uniteChildren(final EccoSet<EccoNode> result, final EccoNode productNode, final EccoNode nodeMainTree,
+    private void uniteChildren(final EccoSet<ASTNode> result, final ASTNode productNode, final ASTNode nodeMainTree,
             final Product product) {
-        for (final EccoNode productChild : productNode.getChildren()) {
+        for (final ASTNode productChild : productNode.getChildren()) {
             Set<ProductPosition> productPositions = new HashSet<>();
 
             // Check whether there is a similar node somewhere among the descendants
-            final EccoNode mainTreeEquivalent = findSimilarDescendant(productChild, nodeMainTree);
+            final ASTNode mainTreeEquivalent = findSimilarDescendant(productChild, nodeMainTree);
             if (mainTreeEquivalent != null) {
                 result.add(mainTreeEquivalent);
                 productPositions = positionMap.get(mainTreeEquivalent);
@@ -57,7 +57,7 @@ public class MainTree implements Serializable {
                 uniteChildren(result, productChild, mainTreeEquivalent, product);
             } else {
                 // add a copy of the product child node to the main tree
-                final EccoNode childToAdd = new EccoNode(nodeMainTree, productChild.getCode(),
+                final ASTNode childToAdd = new ASTNode(nodeMainTree, productChild.getCode(),
                         UnspecifiedPosition.INSTANCE, productChild.getType(), productChild.getMapping());
                 nodeMainTree.addChild(childToAdd);
                 childToAdd.setParent(nodeMainTree);
@@ -71,14 +71,14 @@ public class MainTree implements Serializable {
         }
     }
 
-    private EccoNode findSimilarDescendant(final EccoNode productNode, final EccoNode nodeMainTree) {
+    private ASTNode findSimilarDescendant(final ASTNode productNode, final ASTNode nodeMainTree) {
         if (productNode.isSimilar(nodeMainTree)) {
             return nodeMainTree;
         } else if (nodeMainTree.getChildren().isEmpty()) {
             return null;
         } else {
-            for (final EccoNode mainTreeChild : nodeMainTree.getChildren()) {
-                final EccoNode foundDescendant = findSimilarDescendant(productNode, mainTreeChild);
+            for (final ASTNode mainTreeChild : nodeMainTree.getChildren()) {
+                final ASTNode foundDescendant = findSimilarDescendant(productNode, mainTreeChild);
                 if (foundDescendant != null) {
                     return foundDescendant;
                 }
@@ -87,10 +87,10 @@ public class MainTree implements Serializable {
         }
     }
 
-    private void addAllSubNodes(final EccoSet<EccoNode> result, final EccoNode mainTreeParent,
-            final EccoSet<EccoNode> productChildren, final Product product) {
-        for (final EccoNode child : productChildren) {
-            final EccoNode childCopy = new EccoNode(mainTreeParent, child.getCode(), UnspecifiedPosition.INSTANCE,
+    private void addAllSubNodes(final EccoSet<ASTNode> result, final ASTNode mainTreeParent,
+            final EccoSet<ASTNode> productChildren, final Product product) {
+        for (final ASTNode child : productChildren) {
+            final ASTNode childCopy = new ASTNode(mainTreeParent, child.getCode(), UnspecifiedPosition.INSTANCE,
                     child.getType(), child.getMapping());
             mainTreeParent.addChild(childCopy);
             childCopy.setParent(mainTreeParent);
@@ -113,14 +113,14 @@ public class MainTree implements Serializable {
 
     private void initializeInversePositionMap() {
         this.inversePositionMap = new HashMap<>();
-        for (final EccoNode node : positionMap.keySet()) {
+        for (final ASTNode node : positionMap.keySet()) {
             for (final ProductPosition position : positionMap.get(node)) {
                 this.inversePositionMap.put(position, node);
             }
         }
     }
 
-    public Set<ProductPosition> getProductPositions(final EccoNode node) {
+    public Set<ProductPosition> getProductPositions(final ASTNode node) {
         return positionMap.get(node);
     }
 
