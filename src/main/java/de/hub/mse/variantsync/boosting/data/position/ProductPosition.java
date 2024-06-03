@@ -1,6 +1,6 @@
-package de.hub.mse.variantsync.ecco.data.position;
+package de.hub.mse.variantsync.boosting.data.position;
 
-import de.hub.mse.variantsync.ecco.data.Product;
+import de.hub.mse.variantsync.boosting.data.Product;
 
 import java.io.Serializable;
 import java.nio.file.Path;

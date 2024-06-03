@@ -1,7 +1,7 @@
-package de.hub.mse.variantsync.ecco.data;
+package de.hub.mse.variantsync.boosting.data;
 
-import de.hub.mse.variantsync.ecco.data.position.FilePosition;
-import de.hub.mse.variantsync.ecco.data.position.RootPosition;
+import de.hub.mse.variantsync.boosting.data.position.FilePosition;
+import de.hub.mse.variantsync.boosting.data.position.RootPosition;
 
 import java.io.File;
 import java.io.Serializable;
@@ -39,7 +39,8 @@ public abstract class AbstractAST implements Serializable {
         this.astNodes = astNodes;
     }
 
-    // collects all nodes (except the root node) of the AST in one set to simplify their access
+    // collects all nodes (except the root node) of the AST in one set to simplify
+    // their access
     public EccoSet<EccoNode> collectAstNodes() {
         final EccoSet<EccoNode> result = new EccoSet<>();
         final ArrayList<EccoNode> nodesToVisit = new ArrayList<>();

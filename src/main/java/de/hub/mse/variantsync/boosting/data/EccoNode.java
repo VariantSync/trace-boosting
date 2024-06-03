@@ -1,7 +1,7 @@
-package de.hub.mse.variantsync.ecco.data;
+package de.hub.mse.variantsync.boosting.data;
 
-import de.hub.mse.variantsync.ecco.ECCO_LIGHT;
-import de.hub.mse.variantsync.ecco.data.position.Position;
+import de.hub.mse.variantsync.boosting.ECCO_LIGHT;
+import de.hub.mse.variantsync.boosting.data.position.Position;
 import org.logicng.formulas.FType;
 import org.logicng.formulas.Formula;
 import org.logicng.io.parsers.ParserException;
@@ -29,7 +29,8 @@ public class EccoNode implements Serializable {
     private EccoNode productEquivalent;
     private int sequenceNumber = 0;
 
-    public EccoNode(final EccoNode parent, final String code, final Position position, final NODE_TYPE type, final Formula mapping) {
+    public EccoNode(final EccoNode parent, final String code, final Position position, final NODE_TYPE type,
+            final Formula mapping) {
         this.parent = parent;
         this.code = code;
         this.startPosition = Objects.requireNonNull(position);
@@ -39,9 +40,14 @@ public class EccoNode implements Serializable {
         productEquivalent = null;
     }
 
-    //if two nodes are at the same position of the AST and contain the same code, we distinguish them by sequence numbers
-    /*Warning: Later on we will match nodes from different products by their sequence numbers, but that is not necessarily correct (they can e.g. be shifted by inserts or deletes).
-    Correct matching of the sequence numbers would require further investigation of the nodes' children and was omitted here.
+    // if two nodes are at the same position of the AST and contain the same code,
+    // we distinguish them by sequence numbers
+    /*
+     * Warning: Later on we will match nodes from different products by their
+     * sequence numbers, but that is not necessarily correct (they can e.g. be
+     * shifted by inserts or deletes).
+     * Correct matching of the sequence numbers would require further investigation
+     * of the nodes' children and was omitted here.
      */
     public void addChild(final EccoNode child) {
         while (!children.add(child)) {
@@ -58,8 +64,10 @@ public class EccoNode implements Serializable {
     }
 
     public boolean isSimilar(final EccoNode eccoNode) {
-        if (this == eccoNode) return true;
-        if (eccoNode == null || getClass() != eccoNode.getClass()) return false;
+        if (this == eccoNode)
+            return true;
+        if (eccoNode == null || getClass() != eccoNode.getClass())
+            return false;
         return Objects.equals(code, eccoNode.code) &&
                 this.similarParent(eccoNode) &&
                 type == eccoNode.type &&
@@ -83,8 +91,10 @@ public class EccoNode implements Serializable {
     }
 
     private boolean similarParent(final EccoNode other) {
-        if (this.parent == other.parent) return true;
-        if (this.parent == null || this.parent.getClass() != other.parent.getClass()) return false;
+        if (this.parent == other.parent)
+            return true;
+        if (this.parent == null || this.parent.getClass() != other.parent.getClass())
+            return false;
         return Objects.equals(this.parent.code, other.parent.code) &&
                 this.parent.type == other.parent.type &&
                 this.parent.sequenceNumber == other.parent.sequenceNumber;
@@ -110,7 +120,8 @@ public class EccoNode implements Serializable {
         }
     }
 
-    //return set of all possible mappings (if the mapping is a DNF formula, each clause is a possible mapping on its own)
+    // return set of all possible mappings (if the mapping is a DNF formula, each
+    // clause is a possible mapping on its own)
     public EccoSet<Formula> getMappings() {
         final EccoSet<Formula> mappings = new EccoSet<>();
         if (mapping.type() == FType.OR) {
@@ -123,7 +134,7 @@ public class EccoNode implements Serializable {
         return mappings;
     }
 
-    //return whole mapping as a formula
+    // return whole mapping as a formula
     public Formula getMapping() {
         return mapping;
     }
@@ -151,7 +162,7 @@ public class EccoNode implements Serializable {
         } else {
             o2 = null;
         }
-        oos.writeObject(new Object[]{o1, o2});
+        oos.writeObject(new Object[] { o1, o2 });
     }
 
     private void readObject(final ObjectInputStream ois) throws ClassNotFoundException, IOException, ParserException {

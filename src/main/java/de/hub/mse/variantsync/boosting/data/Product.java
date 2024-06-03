@@ -1,9 +1,9 @@
-package de.hub.mse.variantsync.ecco.data;
+package de.hub.mse.variantsync.boosting.data;
 
-import de.hub.mse.variantsync.ecco.ECCO_LIGHT;
-import de.hub.mse.variantsync.ecco.data.position.Position;
-import de.hub.mse.variantsync.ecco.data.specialization.JavaAST;
-import de.hub.mse.variantsync.ecco.data.specialization.LineAST;
+import de.hub.mse.variantsync.boosting.ECCO_LIGHT;
+import de.hub.mse.variantsync.boosting.data.position.Position;
+import de.hub.mse.variantsync.boosting.data.specialization.JavaAST;
+import de.hub.mse.variantsync.boosting.data.specialization.LineAST;
 import org.logicng.formulas.Formula;
 import org.logicng.io.parsers.ParserException;
 
@@ -17,12 +17,14 @@ import java.util.stream.Collectors;
 public class Product implements Serializable {
     private final EccoSet<Feature> features;
     private final String name;
-    //the original product AST
+    // the original product AST
     private AbstractAST productAST;
-    //the AST nodes of the main tree that correspond to the AST nodes of the product AST
+    // the AST nodes of the main tree that correspond to the AST nodes of the
+    // product AST
     private EccoSet<EccoNode> astNodesMainTree;
 
-    public Product(final String name, final EccoSet<EccoNode> astNodesMainTree, final AbstractAST productAST, final EccoSet<Feature> features) {
+    public Product(final String name, final EccoSet<EccoNode> astNodesMainTree, final AbstractAST productAST,
+            final EccoSet<Feature> features) {
         this.name = name;
         this.astNodesMainTree = astNodesMainTree;
         this.productAST = productAST;
@@ -72,12 +74,14 @@ public class Product implements Serializable {
         return astNodesMainTree;
     }
 
-    //returns the mapping of the node at given position in the product or (if it was already merged into the main tree) the mapping of the corresponding node in the main tree
+    // returns the mapping of the node at given position in the product or (if it
+    // was already merged into the main tree) the mapping of the corresponding node
+    // in the main tree
     public Formula getMappingFromPosition(final Position position) {
-        //look for the right node in the product AST's nodes
+        // look for the right node in the product AST's nodes
         for (final EccoNode oldNode : productAST.getAstNodes()) {
             if (position.equals(oldNode.getStartPosition())) {
-                //find and return the mapping of the corresponding node in the main tree
+                // find and return the mapping of the corresponding node in the main tree
                 for (final EccoNode newNode : astNodesMainTree) {
                     if (newNode.isSimilar(oldNode)) {
                         return newNode.getMapping();
@@ -93,12 +97,13 @@ public class Product implements Serializable {
         return name;
     }
 
-    //returns the node at given position in the product or (if it was already merged into the main tree) the corresponding node in the main tree
+    // returns the node at given position in the product or (if it was already
+    // merged into the main tree) the corresponding node in the main tree
     public EccoNode getNodeFromPosition(final Position position) {
-        //look for the right node in the product AST's nodes
+        // look for the right node in the product AST's nodes
         for (final EccoNode oldNode : productAST.getAstNodes()) {
             if (position.equals(oldNode.getStartPosition())) {
-                //find and return the corresponding node in the main tree
+                // find and return the corresponding node in the main tree
                 for (final EccoNode newNode : astNodesMainTree) {
                     if (newNode.isSimilar(oldNode)) {
                         return newNode;
@@ -198,8 +203,10 @@ public class Product implements Serializable {
 
     @Override
     public boolean equals(final Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Product)) return false;
+        if (this == o)
+            return true;
+        if (!(o instanceof Product))
+            return false;
         final Product product = (Product) o;
         return features.equals(product.features);
     }

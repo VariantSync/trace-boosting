@@ -1,7 +1,7 @@
-package de.hub.mse.variantsync.ecco.util;
+package de.hub.mse.variantsync.boosting.util;
 
-import de.hub.mse.variantsync.ecco.data.Product;
-import de.hub.mse.variantsync.ecco.threading.ProductLoadTask;
+import de.hub.mse.variantsync.boosting.data.Product;
+import de.hub.mse.variantsync.boosting.threading.ProductLoadTask;
 
 import java.util.Iterator;
 import java.util.LinkedList;

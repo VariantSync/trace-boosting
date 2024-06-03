@@ -1,4 +1,4 @@
-package de.hub.mse.variantsync.ecco.data;
+package de.hub.mse.variantsync.boosting.data;
 
 import org.logicng.formulas.Literal;
 
@@ -13,8 +13,10 @@ public class Module {
 
     @Override
     public boolean equals(final Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Module)) return false;
+        if (this == o)
+            return true;
+        if (!(o instanceof Module))
+            return false;
         final Module module = (Module) o;
         return Objects.equals(literals, module.literals);
     }

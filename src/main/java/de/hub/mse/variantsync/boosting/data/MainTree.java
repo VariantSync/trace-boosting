@@ -1,8 +1,8 @@
-package de.hub.mse.variantsync.ecco.data;
+package de.hub.mse.variantsync.boosting.data;
 
-import de.hub.mse.variantsync.ecco.ECCO_LIGHT;
-import de.hub.mse.variantsync.ecco.data.position.ProductPosition;
-import de.hub.mse.variantsync.ecco.data.position.UnspecifiedPosition;
+import de.hub.mse.variantsync.boosting.ECCO_LIGHT;
+import de.hub.mse.variantsync.boosting.data.position.ProductPosition;
+import de.hub.mse.variantsync.boosting.data.position.UnspecifiedPosition;
 import org.logicng.formulas.Formula;
 
 import java.io.Serializable;

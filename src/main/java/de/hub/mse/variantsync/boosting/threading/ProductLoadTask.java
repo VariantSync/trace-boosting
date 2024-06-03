@@ -1,6 +1,6 @@
-package de.hub.mse.variantsync.ecco.threading;
+package de.hub.mse.variantsync.boosting.threading;
 
-import de.hub.mse.variantsync.ecco.data.Product;
+import de.hub.mse.variantsync.boosting.data.Product;
 import org.tinylog.Logger;
 
 import java.io.FileInputStream;

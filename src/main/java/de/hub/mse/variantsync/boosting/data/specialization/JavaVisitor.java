@@ -1,4 +1,4 @@
-package de.hub.mse.variantsync.ecco.data.specialization;
+package de.hub.mse.variantsync.boosting.data.specialization;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
@@ -7,9 +7,9 @@ import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.modules.ModuleDeclaration;
 import com.github.javaparser.ast.stmt.*;
 import com.github.javaparser.ast.visitor.VoidVisitorWithDefaults;
-import de.hub.mse.variantsync.ecco.data.EccoNode;
-import de.hub.mse.variantsync.ecco.data.position.LinePosition;
-import de.hub.mse.variantsync.ecco.data.position.Position;
+import de.hub.mse.variantsync.boosting.data.EccoNode;
+import de.hub.mse.variantsync.boosting.data.position.LinePosition;
+import de.hub.mse.variantsync.boosting.data.position.Position;
 import org.tinylog.Logger;
 
 public class JavaVisitor extends VoidVisitorWithDefaults<EccoNode> {

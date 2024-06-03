@@ -1,4 +1,4 @@
-package de.hub.mse.variantsync.ecco.data;
+package de.hub.mse.variantsync.boosting.data;
 
 import org.logicng.formulas.Formula;
 
@@ -11,10 +11,11 @@ public class Association {
     private EccoSet<Module> max;
     private EccoSet<Module> not;
     private Formula mapping;
-    //isBasic tells whether the code of the association appears in all products
+    // isBasic tells whether the code of the association appears in all products
     private boolean isBasic;
 
-    public Association(final EccoSet<Module> min, final EccoSet<Module> all, final EccoSet<Module> max, final EccoSet<Module> not, final EccoSet<EccoNode> astNodes) {
+    public Association(final EccoSet<Module> min, final EccoSet<Module> all, final EccoSet<Module> max,
+            final EccoSet<Module> not, final EccoSet<EccoNode> astNodes) {
         this.min = new EccoSet<>(min);
         this.all = new EccoSet<>(all);
         this.max = new EccoSet<>(max);
@@ -26,8 +27,10 @@ public class Association {
 
     @Override
     public boolean equals(final Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
         final Association that = (Association) o;
         return Objects.equals(min, that.min) &&
                 Objects.equals(all, that.all) &&
@@ -90,7 +93,7 @@ public class Association {
                 result.clear();
                 result.add(module);
                 size = module.size();
-            } else if(module.size() == size) {
+            } else if (module.size() == size) {
                 result.add(module);
                 size = module.size();
             }
