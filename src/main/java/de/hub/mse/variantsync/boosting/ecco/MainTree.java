@@ -1,6 +1,6 @@
 package de.hub.mse.variantsync.boosting.ecco;
 
-import de.hub.mse.variantsync.boosting.ECCO_LIGHT;
+import de.hub.mse.variantsync.boosting.TraceBoosting;
 import de.hub.mse.variantsync.boosting.parsing.AbstractAST;
 import de.hub.mse.variantsync.boosting.position.ProductPosition;
 import de.hub.mse.variantsync.boosting.position.UnspecifiedPosition;
@@ -49,7 +49,7 @@ public class MainTree implements Serializable {
                     if (mainTreeEquivalent.getMapping() != null && !mainTreeEquivalent.getMapping().toString()
                             .equals(productChild.getMapping().toString())) {
                         mainTreeEquivalent.setMapping(
-                                ECCO_LIGHT.f.or(mainTreeEquivalent.getMapping(), productChild.getMapping()));
+                                TraceBoosting.f.or(mainTreeEquivalent.getMapping(), productChild.getMapping()));
                     } else {
                         mainTreeEquivalent.setMapping(productChild.getMapping());
                     }

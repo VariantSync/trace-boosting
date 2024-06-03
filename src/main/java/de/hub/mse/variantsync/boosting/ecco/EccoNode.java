@@ -1,6 +1,6 @@
 package de.hub.mse.variantsync.boosting.ecco;
 
-import de.hub.mse.variantsync.boosting.ECCO_LIGHT;
+import de.hub.mse.variantsync.boosting.TraceBoosting;
 import de.hub.mse.variantsync.boosting.position.Position;
 
 import org.logicng.formulas.FType;
@@ -170,7 +170,7 @@ public class EccoNode implements Serializable {
         ois.defaultReadObject();
         final Object[] transientObjects = (Object[]) ois.readObject();
         if (transientObjects[0] != null) {
-            this.mapping = new PropositionalParser(ECCO_LIGHT.f).parse((String) transientObjects[0]);
+            this.mapping = new PropositionalParser(TraceBoosting.f).parse((String) transientObjects[0]);
         }
         if (transientObjects[1] != null) {
             final String[] serializedPosition = (String[]) transientObjects[1];

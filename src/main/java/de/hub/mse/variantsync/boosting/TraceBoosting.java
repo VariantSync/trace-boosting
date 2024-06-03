@@ -24,12 +24,13 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
-public class ECCO_LIGHT {
+public class TraceBoosting {
 
     /*
      * This is how mappings can be changed (if no changes are to be made, only do 1
      * and 7): 1.
-     * create an object ecco_light of class ECCO_LIGHT (it will initialize products
+     * create an object ecco_light of class TraceBoosting (it will initialize
+     * products
      * automatically)
      * 2. after initializing, load the products using
      * loadProducts(ecco_light.getInputFolder(),
@@ -118,7 +119,7 @@ public class ECCO_LIGHT {
     private final List<ProductInitializationTask> productInitTasks;
     private final List<Product> products = new ArrayList<>();
 
-    public ECCO_LIGHT(final List<ProductPassport> sourceLocations, final Path workingDir,
+    public TraceBoosting(final List<ProductPassport> sourceLocations, final Path workingDir,
             final ESupportedLanguages targetLanguage) {
         this.sourceLocations = sourceLocations;
         this.targetLanguage = targetLanguage;

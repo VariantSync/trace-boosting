@@ -1,6 +1,6 @@
 package de.hub.mse.variantsync.boosting.product;
 
-import de.hub.mse.variantsync.boosting.ECCO_LIGHT;
+import de.hub.mse.variantsync.boosting.TraceBoosting;
 import de.hub.mse.variantsync.boosting.ecco.EccoNode;
 import de.hub.mse.variantsync.boosting.ecco.EccoSet;
 import de.hub.mse.variantsync.boosting.ecco.Feature;
@@ -197,7 +197,7 @@ public class Product implements Serializable {
             if (node.getMapping() == null) {
                 mapping = null;
             } else {
-                mapping = ECCO_LIGHT.f.parse(node.getMapping().toString());
+                mapping = TraceBoosting.f.parse(node.getMapping().toString());
             }
             return new EccoNode(null, node.getCode(), node.getStartPosition(), node.getType(), mapping);
         } catch (final ParserException e) {
