@@ -19,3 +19,4 @@ src/test/resources/results/
 */latex/*.log
 */latex/*.out
 */latex/*.synctex.gz
+local-maven-repo/org/variantsync/trace-boosting
