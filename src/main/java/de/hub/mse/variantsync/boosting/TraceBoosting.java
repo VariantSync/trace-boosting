@@ -1,11 +1,30 @@
 package de.hub.mse.variantsync.boosting;
 
-import org.tinylog.Logger;
-
-import de.hub.mse.variantsync.boosting.ecco.*;
-import de.hub.mse.variantsync.boosting.ecco.Module;
-import de.hub.mse.variantsync.boosting.parsing.*;
-import de.hub.mse.variantsync.boosting.product.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 import org.logicng.formulas.FType;
 import org.logicng.formulas.Formula;
@@ -14,110 +33,39 @@ import org.logicng.formulas.Literal;
 import org.logicng.transformations.cnf.CNFConfig;
 import org.logicng.transformations.dnf.DNFFactorization;
 import org.logicng.transformations.dnf.DNFSubsumption;
+import org.tinylog.Logger;
 
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.stream.Collectors;
+import de.hub.mse.variantsync.boosting.ecco.ASTNode;
+import de.hub.mse.variantsync.boosting.ecco.Association;
+import de.hub.mse.variantsync.boosting.ecco.EccoSet;
+import de.hub.mse.variantsync.boosting.ecco.Feature;
+import de.hub.mse.variantsync.boosting.ecco.MainTree;
+import de.hub.mse.variantsync.boosting.ecco.Module;
+import de.hub.mse.variantsync.boosting.parsing.AbstractAST;
+import de.hub.mse.variantsync.boosting.parsing.CAST;
+import de.hub.mse.variantsync.boosting.parsing.ESupportedLanguages;
+import de.hub.mse.variantsync.boosting.parsing.JavaAST;
+import de.hub.mse.variantsync.boosting.parsing.LineAST;
+import de.hub.mse.variantsync.boosting.product.Product;
+import de.hub.mse.variantsync.boosting.product.ProductInitializationTask;
+import de.hub.mse.variantsync.boosting.product.ProductLoadTask;
+import de.hub.mse.variantsync.boosting.product.ProductLoader;
+import de.hub.mse.variantsync.boosting.product.ProductPassport;
+import de.hub.mse.variantsync.boosting.product.ProductSaveTask;
 
 public class TraceBoosting {
+
     private static final DNFFactorization dnf_simplifier_1 = new DNFFactorization();
     private static final DNFSubsumption dnf_simplifier_2 = new DNFSubsumption();
     public static FormulaFactory f = new FormulaFactory();
-    private EccoSet<Feature> allFeatures;
-    private int nThreads = Runtime.getRuntime().availableProcessors();
-
     static {
         final var builder = CNFConfig.builder();
         builder.algorithm(CNFConfig.Algorithm.FACTORIZATION);
         f.putConfiguration(builder.build());
     }
 
-    private final List<ProductPassport> sourceLocations;
-    private final ESupportedLanguages targetLanguage;
-    /*
-     * Set mapping_calculation to "CNF".
-     * TraceBoosting uses a heuristic to simplify the mapping in a sensible way. As
-     * in option 1, TraceBoosting takes the disjunction of the configurations
-     * associated with a piece of code. TraceBoosting then simplifies the resulting
-     * formula to a CNF formula.
-     */
-    public String mapping_calculation = "CNF";
-    private String inputFolder, inputFile, resultsFolder, resultsFile;
-    private final Path workingDir;
-
-    private final List<ProductInitializationTask> productInitTasks;
-    private final List<Product> products = new ArrayList<>();
-
-    public TraceBoosting(final List<ProductPassport> sourceLocations, final Path workingDir,
-            final ESupportedLanguages targetLanguage) {
-        this.sourceLocations = sourceLocations;
-        this.targetLanguage = targetLanguage;
-        this.workingDir = workingDir;
-        setPaths("input", "input", "results", "result");
-        this.productInitTasks = initialize();
-    }
-
-    public EccoSet<Feature> getAllFeatures() {
-        return allFeatures;
-    }
-
-    public void setNumThreads(final int numThreads) {
-        Logger.info("Updating thread pool...");
-        Logger.info("Shutting down old pool");
-        Logger.info("Created new pool with " + numThreads + " threads.");
-        this.nThreads = numThreads;
-    }
-
     public static FormulaFactory getFormulaFactory() {
         return f;
-    }
-
-    public void saveProducts(final Product[] products, final String folderName) {
-        Logger.info("Saving products to " + folderName);
-        final List<Future<?>> futures = new ArrayList<>(products.length);
-        ExecutorService threadPool = Executors.newFixedThreadPool(this.nThreads);
-        try {
-            for (int i = 0; i < products.length; i++) {
-                final ProductSaveTask task = new ProductSaveTask(products[i], folderName, i);
-                futures.add(threadPool.submit(task));
-            }
-            wait(futures);
-        } catch (ExecutionException | InterruptedException e) {
-            Logger.error("threading: ", e);
-            throw new RuntimeException(e);
-        } finally {
-            threadPool.shutdown();
-        }
-        ProductSaveTask.resetProcessedCount();
-        Logger.info("Saved all products.");
-    }
-
-    public List<Product> getProducts() {
-        // Multi-threaded loading of products
-        if (!this.productInitTasks.isEmpty()) {
-            ExecutorService threadPool = Executors.newFixedThreadPool(this.nThreads);
-            try {
-                // Finish all product initialization tasks and store the products
-                this.productInitTasks.stream().map(threadPool::submit).map(f -> {
-                    try {
-                        return f.get();
-                    } catch (final InterruptedException | ExecutionException e) {
-                        Logger.error("Was not able to initialize product.", e);
-                        throw new RuntimeException(e);
-                    }
-                }).forEach(result -> {
-                    this.products.add(result.product);
-                });
-            } finally {
-                threadPool.shutdown();
-            }
-        }
-        this.productInitTasks.clear();
-        return this.products;
     }
 
     public static void saveMainTree(final MainTree mainTree, final String folderName) {
@@ -151,51 +99,10 @@ public class TraceBoosting {
         }
     }
 
-    public Product[] loadProducts(final String inputFolder) {
-        final ProductLoader loader = prepareProductLoader(inputFolder);
-        final List<Product> products = new LinkedList<>();
-        loader.forEachRemaining(products::add);
-        return products.toArray(new Product[0]);
-    }
-
-    public Product[] loadProducts(final Collection<Path> productLocations) {
-        final List<ProductLoadTask> tasks = new ArrayList<>();
-        for (final Path productPath : productLocations) {
-            final ProductLoadTask task = new ProductLoadTask(productPath);
-            tasks.add(task);
-        }
-
-        final ProductLoader loader = new ProductLoader(tasks, this.nThreads);
-        final List<Product> products = new LinkedList<>();
-        loader.forEachRemaining(products::add);
-        return products.toArray(new Product[0]);
-    }
-
     private static void wait(final Collection<Future<?>> futures) throws ExecutionException, InterruptedException {
         for (final Future<?> f : futures) {
             f.get();
         }
-    }
-
-    public ProductLoader prepareProductLoader(final String folderName) {
-        Logger.info("Loading all products from " + folderName);
-        final Path pathToInput = Path.of(folderName);
-        final List<Path> productPaths;
-        try {
-            productPaths = Files.list(pathToInput).filter(p -> p.toString().endsWith(".product"))
-                    .collect(Collectors.toList());
-            productPaths.sort(Path::compareTo);
-        } catch (final IOException e) {
-            Logger.error("Was not able to read input directory.", e);
-            throw new RuntimeException(e);
-        }
-        final List<ProductLoadTask> tasks = new ArrayList<>();
-        for (final Path productPath : productPaths) {
-            final ProductLoadTask task = new ProductLoadTask(productPath);
-            tasks.add(task);
-        }
-
-        return new ProductLoader(tasks, this.nThreads);
     }
 
     private static String getFilename(final Formula mapping) {
@@ -326,6 +233,175 @@ public class TraceBoosting {
         }
     }
 
+    private static EccoSet<Module> featuresToModules(final EccoSet<Feature> positiveFeatures,
+            final EccoSet<Feature> negativeFeatures) {
+        final EccoSet<Module> result = new EccoSet<>();
+        final EccoSet<EccoSet<Feature>> positivePowerSet = positiveFeatures.powerSet();
+        final EccoSet<EccoSet<Feature>> negativePowerSet = negativeFeatures.powerSet();
+
+        // Create all possible modules
+        for (final EccoSet<Feature> posSet : positivePowerSet) {
+            if (posSet.isEmpty()) {
+                continue;
+            }
+            for (final EccoSet<Feature> negSet : negativePowerSet) {
+                final EccoSet<Literal> literals = new EccoSet<>();
+                posSet.stream().map(feature -> f.literal(feature.getName(), true))
+                        .forEach(literals::add);
+                negSet.stream().map(feature -> f.literal(feature.getName(), false))
+                        .forEach(literals::add);
+                result.add(new Module(literals));
+            }
+        }
+
+        return result;
+    }
+
+    private static EccoSet<Module> updateModules(final EccoSet<Module> moduleSet,
+            final EccoSet<Feature> negativeFeatures) {
+        final EccoSet<Module> result = new EccoSet<>();
+        final EccoSet<EccoSet<Feature>> negativePowerSet = negativeFeatures.powerSet();
+        for (final Module module : moduleSet) {
+            for (final EccoSet<Feature> negSet : negativePowerSet) {
+                final EccoSet<Literal> negLiterals = new EccoSet<>();
+                negSet.stream().map(feature -> f.literal(feature.getName(), false))
+                        .forEach(negLiterals::add);
+                result.add(new Module(module.getLiterals().unite(negLiterals)));
+            }
+        }
+        return result;
+    }
+
+    private EccoSet<Feature> allFeatures;
+
+    private int nThreads = Runtime.getRuntime().availableProcessors();
+
+    private final List<ProductPassport> sourceLocations;
+
+    private final ESupportedLanguages targetLanguage;
+
+    /*
+     * Set mapping_calculation to "CNF".
+     * TraceBoosting uses a heuristic to simplify the mapping in a sensible way. As
+     * in option 1, TraceBoosting takes the disjunction of the configurations
+     * associated with a piece of code. TraceBoosting then simplifies the resulting
+     * formula to a CNF formula.
+     */
+    public String mapping_calculation = "CNF";
+
+    private String inputFolder, inputFile, resultsFolder, resultsFile;
+
+    private final Path workingDir;
+
+    private final List<ProductInitializationTask> productInitTasks;
+
+    private final List<Product> products = new ArrayList<>();
+
+    public TraceBoosting(final List<ProductPassport> sourceLocations, final Path workingDir,
+            final ESupportedLanguages targetLanguage) {
+        this.sourceLocations = sourceLocations;
+        this.targetLanguage = targetLanguage;
+        this.workingDir = workingDir;
+        setPaths("input", "input", "results", "result");
+        this.productInitTasks = initialize();
+    }
+
+    public EccoSet<Feature> getAllFeatures() {
+        return allFeatures;
+    }
+
+    public void setNumThreads(final int numThreads) {
+        Logger.info("Updating thread pool...");
+        Logger.info("Shutting down old pool");
+        Logger.info("Created new pool with " + numThreads + " threads.");
+        this.nThreads = numThreads;
+    }
+
+    public void saveProducts(final Product[] products, final String folderName) {
+        Logger.info("Saving products to " + folderName);
+        final List<Future<?>> futures = new ArrayList<>(products.length);
+        ExecutorService threadPool = Executors.newFixedThreadPool(this.nThreads);
+        try {
+            for (int i = 0; i < products.length; i++) {
+                final ProductSaveTask task = new ProductSaveTask(products[i], folderName, i);
+                futures.add(threadPool.submit(task));
+            }
+            wait(futures);
+        } catch (ExecutionException | InterruptedException e) {
+            Logger.error("threading: ", e);
+            throw new RuntimeException(e);
+        } finally {
+            threadPool.shutdown();
+        }
+        ProductSaveTask.resetProcessedCount();
+        Logger.info("Saved all products.");
+    }
+
+    public List<Product> getProducts() {
+        // Multi-threaded loading of products
+        if (!this.productInitTasks.isEmpty()) {
+            ExecutorService threadPool = Executors.newFixedThreadPool(this.nThreads);
+            try {
+                // Finish all product initialization tasks and store the products
+                this.productInitTasks.stream().map(threadPool::submit).map(f -> {
+                    try {
+                        return f.get();
+                    } catch (final InterruptedException | ExecutionException e) {
+                        Logger.error("Was not able to initialize product.", e);
+                        throw new RuntimeException(e);
+                    }
+                }).forEach(result -> {
+                    this.products.add(result.product);
+                });
+            } finally {
+                threadPool.shutdown();
+            }
+        }
+        this.productInitTasks.clear();
+        return this.products;
+    }
+
+    public Product[] loadProducts(final String inputFolder) {
+        final ProductLoader loader = prepareProductLoader(inputFolder);
+        final List<Product> products = new LinkedList<>();
+        loader.forEachRemaining(products::add);
+        return products.toArray(new Product[0]);
+    }
+
+    public Product[] loadProducts(final Collection<Path> productLocations) {
+        final List<ProductLoadTask> tasks = new ArrayList<>();
+        for (final Path productPath : productLocations) {
+            final ProductLoadTask task = new ProductLoadTask(productPath);
+            tasks.add(task);
+        }
+
+        final ProductLoader loader = new ProductLoader(tasks, this.nThreads);
+        final List<Product> products = new LinkedList<>();
+        loader.forEachRemaining(products::add);
+        return products.toArray(new Product[0]);
+    }
+
+    public ProductLoader prepareProductLoader(final String folderName) {
+        Logger.info("Loading all products from " + folderName);
+        final Path pathToInput = Path.of(folderName);
+        final List<Path> productPaths;
+        try {
+            productPaths = Files.list(pathToInput).filter(p -> p.toString().endsWith(".product"))
+                    .collect(Collectors.toList());
+            productPaths.sort(Path::compareTo);
+        } catch (final IOException e) {
+            Logger.error("Was not able to read input directory.", e);
+            throw new RuntimeException(e);
+        }
+        final List<ProductLoadTask> tasks = new ArrayList<>();
+        for (final Path productPath : productPaths) {
+            final ProductLoadTask task = new ProductLoadTask(productPath);
+            tasks.add(task);
+        }
+
+        return new ProductLoader(tasks, this.nThreads);
+    }
+
     public void evaluate(final AbstractAST mainTree, final String outputFolder) {
         Logger.info("start evaluation");
         final Map<String, List<String>> fileToTraceMap = new HashMap<>();
@@ -404,120 +480,6 @@ public class TraceBoosting {
         Logger.info("...done.");
         // result file now contains products with mapped ASTs
         return mainTree;
-    }
-
-    private void assignProactiveTraces(EccoSet<Association> associations) {
-        ExecutorService threadPool = Executors.newFixedThreadPool(nThreads);
-        List<Future<Integer>> futures = new ArrayList<>();
-        for (Association assoc : associations) {
-            futures.add(threadPool.submit(() -> {
-                // Formula does not implement equals and hashCode; we have to use Strings to
-                // store them :(
-                Map<String, Formula> existingMappings = new HashMap<>();
-                for (ASTNode node : assoc.getAstNodes()) {
-                    var mapping = node.getMapping();
-                    if (mapping != null) {
-                        existingMappings.putIfAbsent(mapping.toString(), mapping);
-                    }
-                }
-                if (existingMappings.size() == 1) {
-                    // One mapping for all
-                    for (Formula mapping : existingMappings.values()) {
-                        // loops only once
-                        assoc.setMapping(mapping);
-                    }
-                    return 1;
-                } else {
-                    // Do nothing. If there is no existing mapping, we do not know anything. If
-                    // there is more than one, we cannot decide.
-                    return 0;
-                }
-            }));
-
-        }
-        int associationUpdates = 0;
-        for (var future : futures) {
-            try {
-                // Wait for all association updates to complete
-                associationUpdates += future.get();
-            } catch (InterruptedException | ExecutionException e) {
-                Logger.error("Was not able to finish task", e);
-                throw new RuntimeException(e);
-            }
-        }
-        Logger.info("Updated " + associationUpdates + " of " + associations.size()
-                + " associations by propagating mappings.");
-        threadPool.shutdown();
-    }
-
-    private void determineAssociationMapping(Association association) {
-        // Calculate the formula for the association
-        List<Module> modules = association.getSmallestMinModules();
-        final Formula formula;
-        if (modules.isEmpty()) {
-            // Consider the disjunction of all products
-            modules = association.getSmallestMaxModules();
-            if (association.isBasic()) {
-                formula = f.verum();
-            } else {
-                formula = f.or(modules.stream().map(m -> {
-                    final EccoSet<Literal> literals = m.getLiterals();
-                    return f.cnf(literals);
-                }).collect(Collectors.toList()));
-            }
-        } else {
-            // Continue with the min modules
-            formula = f.and(modules.stream().map(m -> {
-                final EccoSet<Literal> literals = m.getLiterals();
-                return f.cnf(literals);
-            }).collect(Collectors.toList()));
-        }
-        // simplify mappings to minimal formulas
-        if (mapping_calculation.equals("DNF")) {
-            final Formula dnf1 = formula.transform(dnf_simplifier_1);
-            final Formula dnf2 = dnf1.transform(dnf_simplifier_2);
-            association.setMapping(dnf2);
-        } else if (mapping_calculation.equals("CNF")) {
-            final Formula cnf = formula.cnf();
-            Formula mapping = null;
-            boolean unreduced = true;
-            // if the formula only consists of one disjunctive clause, it's already the
-            // mapping
-            if (!cnf.type().equals(FType.AND)) {
-                association.setMapping(cnf);
-            } else {
-                // try to reduce the CNF to clauses that contain no disjunction (=> clauses that
-                // are literals)
-                for (final Formula clause : cnf) {
-                    if (!clause.type().equals(FType.OR)) {
-                        if (unreduced) {
-                            mapping = clause;
-                            unreduced = false;
-                        } else {
-                            mapping = f.and(mapping, clause);
-                        }
-                    }
-                }
-                // if the formula could not be reduced, return to the DNF formula
-                if (unreduced) {
-                    final Formula dnf1 = formula.transform(dnf_simplifier_1);
-                    mapping = dnf1.transform(dnf_simplifier_2);
-                }
-                association.setMapping(mapping);
-            }
-        }
-    }
-
-    private List<ProductInitializationTask> startProductCreation() {
-        Logger.info("Creating products");
-        final Product[] products = new Product[sourceLocations.size()];
-
-        final List<ProductInitializationTask> tasks = new ArrayList<>(products.length);
-        for (int i = 0; i < sourceLocations.size(); i++) {
-            tasks.add(new ProductInitializationTask(i, sourceLocations.get(i), targetLanguage));
-
-        }
-        return tasks;
     }
 
     public String[] getPaths() {
@@ -652,43 +614,118 @@ public class TraceBoosting {
         return associations;
     }
 
-    private static EccoSet<Module> featuresToModules(final EccoSet<Feature> positiveFeatures,
-            final EccoSet<Feature> negativeFeatures) {
-        final EccoSet<Module> result = new EccoSet<>();
-        final EccoSet<EccoSet<Feature>> positivePowerSet = positiveFeatures.powerSet();
-        final EccoSet<EccoSet<Feature>> negativePowerSet = negativeFeatures.powerSet();
+    private void assignProactiveTraces(EccoSet<Association> associations) {
+        ExecutorService threadPool = Executors.newFixedThreadPool(nThreads);
+        List<Future<Integer>> futures = new ArrayList<>();
+        for (Association assoc : associations) {
+            futures.add(threadPool.submit(() -> {
+                // Formula does not implement equals and hashCode; we have to use Strings to
+                // store them :(
+                Map<String, Formula> existingMappings = new HashMap<>();
+                for (ASTNode node : assoc.getAstNodes()) {
+                    var mapping = node.getMapping();
+                    if (mapping != null) {
+                        existingMappings.putIfAbsent(mapping.toString(), mapping);
+                    }
+                }
+                if (existingMappings.size() == 1) {
+                    // One mapping for all
+                    for (Formula mapping : existingMappings.values()) {
+                        // loops only once
+                        assoc.setMapping(mapping);
+                    }
+                    return 1;
+                } else {
+                    // Do nothing. If there is no existing mapping, we do not know anything. If
+                    // there is more than one, we cannot decide.
+                    return 0;
+                }
+            }));
 
-        // Create all possible modules
-        for (final EccoSet<Feature> posSet : positivePowerSet) {
-            if (posSet.isEmpty()) {
-                continue;
-            }
-            for (final EccoSet<Feature> negSet : negativePowerSet) {
-                final EccoSet<Literal> literals = new EccoSet<>();
-                posSet.stream().map(feature -> f.literal(feature.getName(), true))
-                        .forEach(literals::add);
-                negSet.stream().map(feature -> f.literal(feature.getName(), false))
-                        .forEach(literals::add);
-                result.add(new Module(literals));
+        }
+        int associationUpdates = 0;
+        for (var future : futures) {
+            try {
+                // Wait for all association updates to complete
+                associationUpdates += future.get();
+            } catch (InterruptedException | ExecutionException e) {
+                Logger.error("Was not able to finish task", e);
+                throw new RuntimeException(e);
             }
         }
-
-        return result;
+        Logger.info("Updated " + associationUpdates + " of " + associations.size()
+                + " associations by propagating mappings.");
+        threadPool.shutdown();
     }
 
-    private static EccoSet<Module> updateModules(final EccoSet<Module> moduleSet,
-            final EccoSet<Feature> negativeFeatures) {
-        final EccoSet<Module> result = new EccoSet<>();
-        final EccoSet<EccoSet<Feature>> negativePowerSet = negativeFeatures.powerSet();
-        for (final Module module : moduleSet) {
-            for (final EccoSet<Feature> negSet : negativePowerSet) {
-                final EccoSet<Literal> negLiterals = new EccoSet<>();
-                negSet.stream().map(feature -> f.literal(feature.getName(), false))
-                        .forEach(negLiterals::add);
-                result.add(new Module(module.getLiterals().unite(negLiterals)));
+    private void determineAssociationMapping(Association association) {
+        // Calculate the formula for the association
+        List<Module> modules = association.getSmallestMinModules();
+        final Formula formula;
+        if (modules.isEmpty()) {
+            // Consider the disjunction of all products
+            modules = association.getSmallestMaxModules();
+            if (association.isBasic()) {
+                formula = f.verum();
+            } else {
+                formula = f.or(modules.stream().map(m -> {
+                    final EccoSet<Literal> literals = m.getLiterals();
+                    return f.cnf(literals);
+                }).collect(Collectors.toList()));
+            }
+        } else {
+            // Continue with the min modules
+            formula = f.and(modules.stream().map(m -> {
+                final EccoSet<Literal> literals = m.getLiterals();
+                return f.cnf(literals);
+            }).collect(Collectors.toList()));
+        }
+        // simplify mappings to minimal formulas
+        if (mapping_calculation.equals("DNF")) {
+            final Formula dnf1 = formula.transform(dnf_simplifier_1);
+            final Formula dnf2 = dnf1.transform(dnf_simplifier_2);
+            association.setMapping(dnf2);
+        } else if (mapping_calculation.equals("CNF")) {
+            final Formula cnf = formula.cnf();
+            Formula mapping = null;
+            boolean unreduced = true;
+            // if the formula only consists of one disjunctive clause, it's already the
+            // mapping
+            if (!cnf.type().equals(FType.AND)) {
+                association.setMapping(cnf);
+            } else {
+                // try to reduce the CNF to clauses that contain no disjunction (=> clauses that
+                // are literals)
+                for (final Formula clause : cnf) {
+                    if (!clause.type().equals(FType.OR)) {
+                        if (unreduced) {
+                            mapping = clause;
+                            unreduced = false;
+                        } else {
+                            mapping = f.and(mapping, clause);
+                        }
+                    }
+                }
+                // if the formula could not be reduced, return to the DNF formula
+                if (unreduced) {
+                    final Formula dnf1 = formula.transform(dnf_simplifier_1);
+                    mapping = dnf1.transform(dnf_simplifier_2);
+                }
+                association.setMapping(mapping);
             }
         }
-        return result;
+    }
+
+    private List<ProductInitializationTask> startProductCreation() {
+        Logger.info("Creating products");
+        final Product[] products = new Product[sourceLocations.size()];
+
+        final List<ProductInitializationTask> tasks = new ArrayList<>(products.length);
+        for (int i = 0; i < sourceLocations.size(); i++) {
+            tasks.add(new ProductInitializationTask(i, sourceLocations.get(i), targetLanguage));
+
+        }
+        return tasks;
     }
 
     private static class StringWrapper {
