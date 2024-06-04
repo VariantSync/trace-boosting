@@ -53,11 +53,60 @@ import de.hub.mse.variantsync.boosting.product.ProductLoader;
 import de.hub.mse.variantsync.boosting.product.ProductPassport;
 import de.hub.mse.variantsync.boosting.product.ProductSaveTask;
 
+/**
+ * The {@code TraceBoosting} class encapsulates the algorithm for enhancing
+ * retroactive feature tracing with proactively collected feature traces.
+ * It is designed to work with a set of product variants and their associated
+ * feature traces to produce a more accurate and efficient tracing process.
+ * The algorithm is inspired by the ECCO tracing algorithm and is tailored to
+ * improve upon it by utilizing additional trace information.
+ *
+ * <p>
+ * Usage example:
+ * </p>
+ * 
+ * <pre>{@code
+ * // Initialize a list to hold ProductPassport objects that describe the
+ * // artifact locations for each variant
+ * List<ProductPassport> productPassports = new ArrayList<>();
+ * // Iterate over the collection of variants
+ * for (Variant variant : variants) {
+ *     String variantName = variant.getName();
+ *     // Create a new ProductPassport for the variant and add it to the list
+ *     productPassports.add(new ProductPassport(variantName,
+ *             variantsDirectory.resolve(variantName), configFileMap.get(variantName)));
+ * }
+ * // Instantiate the TraceBoosting algorithm with the product passports,
+ * // working directory, and the supported language for tracing.
+ * // LINES creates a simple line-based AST that is language-agnostic.
+ * TraceBoosting traceBoosting = new TraceBoosting(productPassports,
+ *         workingDirectory, ESupportedLanguages.LINES);
+ * // Retrieve the list of products from the TraceBoosting instance
+ * List<Product> products = traceBoosting.getProducts();
+ * // Apply the proactively collected traces to the products
+ * distributeMappings(products, variantGenerationResult.variantGroundTruthMap(),
+ *         percentage, config.getStrip());
+ * // Compute the Main tree which represents the merged variant AST with feature
+ * // traces
+ * MainTree mainTree = traceBoosting.compute();
+ * }</pre>
+ *
+ * <p>
+ * Note: The actual implementation of methods like {@code distributeMappings}
+ * and {@code computeEcco} are not shown in this example and should be defined
+ * elsewhere in the codebase.
+ * </p>
+ */
 public class TraceBoosting {
 
     private static final DNFFactorization dnf_simplifier_1 = new DNFFactorization();
     private static final DNFSubsumption dnf_simplifier_2 = new DNFSubsumption();
     public static FormulaFactory f = new FormulaFactory();
+
+    /**
+     * Static block to initialize the FormulaFactory object with a CNFConfig object
+     * that specifies the simplification algorithm.
+     */
     static {
         final var builder = CNFConfig.builder();
         builder.algorithm(CNFConfig.Algorithm.FACTORIZATION);
