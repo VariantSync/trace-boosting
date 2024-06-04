@@ -78,8 +78,8 @@
                             <goal>jar</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>docs</outputDirectory>
-                            <destDir>apidocs</destDir>
+                            <outputDirectory>${project.basedir}/docs</outputDirectory>
+                            <destDir>${project.basedir}/docs</destDir>
                             <show>public protected</show>
                         </configuration>
                     </execution>

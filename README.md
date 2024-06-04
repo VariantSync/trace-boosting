@@ -1,3 +1,5 @@
+[![JavaDoc](https://img.shields.io/badge/JavaDoc-Documentation-blue)](https://github.com/VariantSync/trace-boosting/docs/)
+
 # trace-boosting: Give an Inch and Take a Mile? Effects of Adding Reliable Knowledge to Heuristic Feature Tracing
 
 ## Overview
