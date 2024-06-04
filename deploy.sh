@@ -1,1 +1,1 @@
-mvn deploy:deploy-file -DgroupId=org.variantsync -DartifactId=trace-boosting -Dversion=1.0.0 -Durl=file:./local-maven-repo/ -DrepositoryId=local-maven-repo -DupdateReleaseInfo=true -Dfile=./target/trace-boosting-1.0.0-jar-with-dependencies.jar
+mvn deploy:deploy-file -DgroupId=org.variantsync.boosting -DartifactId=trace-boosting -Dversion=1.0.0 -Durl=file:./local-maven-repo/ -DrepositoryId=local-maven-repo -DupdateReleaseInfo=true -Dfile=./target/trace-boosting-1.0.0-jar-with-dependencies.jar

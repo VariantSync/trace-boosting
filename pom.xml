@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
 	<!-- Adjust group id for anonymous projects -->
-    <groupId>org.variantsync</groupId>
+    <groupId>org.variantsync.boosting</groupId>
 	<!-- Adjust the project name -->
     <artifactId>trace-boosting</artifactId>
     <version>1.0.0</version>
