@@ -1,3 +1,0 @@
-Stack Refinement
-Stack decrypt()
-Stack encrypt()

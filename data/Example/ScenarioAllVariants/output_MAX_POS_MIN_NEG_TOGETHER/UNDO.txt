@@ -1,4 +1,0 @@
-Stack Refinement
-Stack pop() Refinement
-Stack push(Object) Refinement
-Stack undo()
