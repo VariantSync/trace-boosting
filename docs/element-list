@@ -1,5 +1,5 @@
-de.hub.mse.variantsync.boosting
-de.hub.mse.variantsync.boosting.ecco
-de.hub.mse.variantsync.boosting.parsing
-de.hub.mse.variantsync.boosting.position
-de.hub.mse.variantsync.boosting.product
+org.variantsync.boosting
+org.variantsync.boosting.datastructure
+org.variantsync.boosting.parsing
+org.variantsync.boosting.position
+org.variantsync.boosting.product
