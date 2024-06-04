@@ -81,7 +81,7 @@ public class Association {
     /**
      * Returns the set of AST nodes contained in this EccoSet.
      *
-     * @return EccoSet<ASTNode> - a set of ASTNode objects representing the AST
+     * @return a set of ASTNode objects representing the AST
      *         nodes
      */
     public EccoSet<ASTNode> getAstNodes() {
@@ -161,7 +161,7 @@ public class Association {
     /**
      * Returns a list of the smallest min modules.
      * 
-     * @return List<Module> The list of smallest min modules
+     * @return The list of smallest min modules
      */
     public List<Module> getSmallestMinModules() {
         return getSmallestModules(this.min);
@@ -170,7 +170,7 @@ public class Association {
     /**
      * Returns a list of the smallest max modules.
      * 
-     * @return List<Module> The list of smallest max modules
+     * @return The list of smallest max modules
      */
     public List<Module> getSmallestMaxModules() {
         return getSmallestModules(this.max);

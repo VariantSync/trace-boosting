@@ -40,12 +40,6 @@ public class ASTNode implements Serializable {
     /**
      * Constructs a new ASTNode with the specified parameters.
      * 
-     * @param parent   The parent ASTNode of this node. Can be null if this node is
-     *                 the root of the AST.
-     * @param code     The code snippet represented by this node.
-     * @param position The position of the code snippet in the source file.
-     * @param type     The type of the code element represented by this node.
-     * @param mapping  The formula mapping associated with this node.
      */
     public ASTNode(final ASTNode parent, final String code, final Position position, final NODE_TYPE type,
             final Formula mapping) {

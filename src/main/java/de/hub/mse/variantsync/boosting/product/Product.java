@@ -121,7 +121,7 @@ public class Product implements Serializable {
     /**
      * Returns the set of AST nodes in the main tree.
      * 
-     * @return EccoSet<ASTNode> - a set of AST nodes in the main tree
+     * @return a set of AST nodes in the main tree
      */
     public EccoSet<ASTNode> getAstNodesMainTree() {
         return astNodesMainTree;

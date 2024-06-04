@@ -13,12 +13,6 @@ import java.util.concurrent.Callable;
  * A Callable task that loads a product from a given file path.
  * The task reads the product object from the file using ObjectInputStream and
  * returns a LoadResult object.
- * 
- * @param productPath The file path of the product to load
- * @return LoadResult An object containing the loaded product ID and product
- *         object
- * @throws UncheckedIOException If an IOException occurs while reading the file
- * @throws RuntimeException     If the Product class is not found
  */
 public class ProductLoadTask implements Callable<ProductLoadTask.LoadResult> {
     private static int processedCount = 0;

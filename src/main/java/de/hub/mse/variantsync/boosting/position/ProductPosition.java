@@ -8,9 +8,6 @@ import java.util.Objects;
 
 /**
  * Represents a mapping between a Product and a Position.
- * 
- * @param product  The Product object associated with this ProductPosition.
- * @param position The Position object associated with this ProductPosition.
  */
 public class ProductPosition implements Serializable {
     public final Product product;

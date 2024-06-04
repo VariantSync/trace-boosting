@@ -20,14 +20,6 @@ import java.util.List;
  * content of a file and create
  * AST nodes for each line in the file.
  *
- * The visitFileContent method is overridden to visit the content of a file and
- * create AST nodes for each line in the file.
- * Each line in the file is represented by an ASTNode with the NODE_TYPE set to
- * LINE.
- *
- * @param fileNode    The ASTNode representing the file being visited.
- * @param fileToVisit The file to visit and create AST nodes for each line.
- * @throws UncheckedIOException If an IOException occurs while reading the file.
  */
 public class LineAST extends AbstractAST {
     private static final int LINE_BASE_INDEX = 0;

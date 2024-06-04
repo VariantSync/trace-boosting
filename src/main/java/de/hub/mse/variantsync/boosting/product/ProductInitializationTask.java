@@ -21,15 +21,6 @@ import java.util.concurrent.Callable;
 /**
  * A Callable task for initializing a product with the given parameters.
  * 
- * @param productNumber The number of the product to initialize.
- * @param productName   The name of the product to initialize.
- * @param configPath    The path to the configuration file for the product.
- * @param sourcePath    The path to the source files for the product.
- * @param allFeatures   The set of all features implemented by the product.
- * @param usedLanguage  The primary language used in the product.
- * @return An InitResult object representing the result of the initialization
- *         task.
- * @throws Exception If an error occurs during the initialization process.
  */
 public class ProductInitializationTask implements Callable<ProductInitializationTask.InitResult> {
     private final int productNumber;

@@ -8,8 +8,6 @@ import java.util.Objects;
  * 
  * This class implements the Comparable interface to allow for comparison of
  * Feature objects based on their names.
- * 
- * @param name the name of the feature
  */
 public class Feature implements Comparable<Feature>, Serializable {
 

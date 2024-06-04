@@ -17,10 +17,6 @@ import java.util.Set;
  * with a root node and a set of AST nodes.
  * This class provides constructors to create an AST with optional filtering
  * based on file types.
- * 
- * @param root      the root node of the AST
- * @param astNodes  the set of AST nodes in the tree
- * @param fileTypes a set of file types to filter the AST nodes by
  */
 public abstract class AbstractAST implements Serializable {
     protected final ASTNode root;
@@ -73,7 +69,7 @@ public abstract class AbstractAST implements Serializable {
      * Collects all nodes (except the root node) of the Abstract Syntax Tree (AST)
      * in one set to simplify their access.
      * 
-     * @return EccoSet<ASTNode> - a set containing all nodes of the AST
+     * @return a set containing all nodes of the AST
      */
     public EccoSet<ASTNode> collectAstNodes() {
         final EccoSet<ASTNode> result = new EccoSet<>();
@@ -131,8 +127,6 @@ public abstract class AbstractAST implements Serializable {
      * @throws NullPointerException     if either fileNode or fileToVisit is null.
      * @throws IllegalArgumentException if the fileToVisit does not exist or is not
      *                                  a valid file.
-     * @throws IOException              if an I/O error occurs while reading the
-     *                                  file content.
      */
     protected abstract void visitFileContent(final ASTNode fileNode, final File fileToVisit);
 

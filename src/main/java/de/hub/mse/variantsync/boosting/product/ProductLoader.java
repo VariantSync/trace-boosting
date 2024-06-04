@@ -16,10 +16,6 @@ import java.util.concurrent.Future;
  * use for loading the products.
  * It then creates a thread pool with the specified number of threads and
  * submits tasks to load products.
- * 
- * @param loadTasks a list of ProductLoadTask objects representing the tasks to
- *                  load products
- * @param nThreads  the number of threads to use for loading products
  */
 public class ProductLoader implements Iterator<Product> {
     private final List<ProductLoadTask> remainingTasks;
