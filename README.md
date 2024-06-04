@@ -12,8 +12,24 @@ It is particularly useful for projects with multiple product variants, where it 
 This projects presents a prototype of our algorithm that boosts comparison-based retroactive feature tracing. 
 The used retroactive tracing method is heavily inspired by ECCO.
 
+## Dependencies
+- [Java using JDK17 or newer](https://www.oracle.com/java/technologies/downloads/)
+- [Maven](https://maven.apache.org/)
+
 ## Setup Using Maven
-To include the TraceBoosting library in your Maven project, add the following dependency to your `pom.xml` file:
+Clone the repository to a directory of your choice: 
+```sh
+git clone https://github.com/VariantSync/trace-boosting.git
+```
+
+Navigate into the root of the repository and install it using [Maven](https://maven.apache.org/).
+```sh
+cd trace-boosting 
+mvn install 
+```
+
+After installation, you can include the TraceBoosting library in your Maven project. 
+Add the following dependency to your `pom.xml` file:
 
 ```xml
 <dependency>
@@ -30,7 +46,7 @@ To use the TraceBoosting algorithm, follow these steps:
 2. Iterate over the collection of variants for which traces are to be computed, creating a `ProductPassport` for each and adding it to the list.
 3. Instantiate the TraceBoosting algorithm with the product passports, working directory, and the supported language for tracing.
 4. Retrieve the list of products from the TraceBoosting instance.
-5. Apply the proactively collected traces to the products.
+5. Apply the proactively collected traces to the products by settings the mappings for the products' AST nodes.
 6. Compute the Main tree, which represents the merged variant AST with feature traces.
 
 Here is a code snippet demonstrating how to use the TraceBoosting algorithm:
