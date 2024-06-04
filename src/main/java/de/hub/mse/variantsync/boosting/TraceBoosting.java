@@ -64,10 +64,23 @@ public class TraceBoosting {
         f.putConfiguration(builder.build());
     }
 
+    /**
+     * Returns the FormulaFactory instance that is currently in use.
+     * 
+     * @return the FormulaFactory instance that is is currently in use
+     */
     public static FormulaFactory getFormulaFactory() {
         return f;
     }
 
+    /**
+     * Saves the main tree object to a file in the specified folder.
+     *
+     * @param mainTree   The MainTree object to be saved
+     * @param folderName The name of the folder where the file will be saved
+     * @throws UncheckedIOException If an IOException occurs while creating
+     *                              directories or writing the object to the file
+     */
     public static void saveMainTree(final MainTree mainTree, final String folderName) {
         final String filePath = folderName + "/main-tree.ast";
         Logger.info("Saving main tree to " + filePath);
@@ -85,6 +98,14 @@ public class TraceBoosting {
         }
     }
 
+    /**
+     * Loads the main tree from the specified folder.
+     *
+     * @param folderName the name of the folder containing the main tree file
+     * @return the MainTree object loaded from the file
+     * @throws UncheckedIOException if an IOException occurs while reading the file
+     * @throws RuntimeException     if the MainTree class is not found
+     */
     public static MainTree loadMainTree(final String folderName) {
         final String filePath = folderName + "/main-tree.ast";
         Logger.info("Loading main tree from " + filePath);
@@ -99,12 +120,27 @@ public class TraceBoosting {
         }
     }
 
+    /**
+     * Waits for all the futures in the given collection to complete.
+     * 
+     * @param futures a collection of Future objects to wait for
+     * @throws ExecutionException   if any of the futures encounter an exception
+     *                              during execution
+     * @throws InterruptedException if the current thread is interrupted while
+     *                              waiting
+     */
     private static void wait(final Collection<Future<?>> futures) throws ExecutionException, InterruptedException {
         for (final Future<?> f : futures) {
             f.get();
         }
     }
 
+    /**
+     * Generates a filename based on the given formula mapping.
+     * 
+     * @param mapping The formula mapping to generate the filename from.
+     * @return A string representing the generated filename.
+     */
     private static String getFilename(final Formula mapping) {
         final StringBuilder name = new StringBuilder();
         int counter = 0;
@@ -120,40 +156,6 @@ public class TraceBoosting {
         }
         name.append(".txt");
         return String.valueOf(name);
-    }
-
-    private static void writePath(final String filename, final List<String> traces,
-            final String outputFolder) {
-        if (!filename.equals(".txt")) {
-            Logger.info("Writing traces to " + filename);
-            final File moduleFile = new File(outputFolder + filename);
-            try {
-                Files.createDirectories(Paths.get(outputFolder));
-                if (moduleFile.createNewFile()) {
-                    Logger.debug("Created new file " + moduleFile);
-                } else {
-                    Logger.debug("File " + moduleFile + " already exists.");
-                }
-            } catch (final IOException e) {
-                Logger.error(
-                        "Was not able to create directories and file on path: " + moduleFile, e);
-                throw new UncheckedIOException(e);
-            }
-
-            try (final FileWriter myWriter = new FileWriter(moduleFile, true)) {
-                // Write all traces
-                for (final var trace : traces) {
-                    if (!trace.equals("") && !trace.equals(" Refinement")) {
-                        myWriter.write(trace + "\n");
-                    }
-                }
-            } catch (final IOException e) {
-                Logger.error("Was not able to write to file " + moduleFile, e);
-                throw new UncheckedIOException(e);
-            }
-        } else {
-            Logger.info("Cannot write traces to " + filename);
-        }
     }
 
     private static void sortOutputFiles(final String outputFolder) {
@@ -402,35 +404,16 @@ public class TraceBoosting {
         return new ProductLoader(tasks, this.nThreads);
     }
 
-    public void evaluate(final AbstractAST mainTree, final String outputFolder) {
-        Logger.info("start evaluation");
-        final Map<String, List<String>> fileToTraceMap = new HashMap<>();
-        for (final ASTNode astNode : mainTree.getAstNodes()) {
-            final EccoSet<Formula> mappings = astNode.getMappings();
-            for (final Formula mapping : mappings) {
-                // if the mapping is "TRUE"
-                if (mapping.literals().isEmpty()) {
-                    continue;
-                }
-                final String trace = getTrace(astNode, mapping);
-                final String fileName = getFilename(mapping);
-                if (fileToTraceMap.containsKey(fileName)) {
-                    final List<String> traces = fileToTraceMap.get(fileName);
-                    traces.add(trace);
-                } else {
-                    final List<String> traces = new LinkedList<>();
-                    traces.add(trace);
-                    fileToTraceMap.put(fileName, traces);
-                }
-            }
-        }
-        Logger.info("start writing");
-        for (final String fileName : fileToTraceMap.keySet()) {
-            writePath(fileName, fileToTraceMap.get(fileName), outputFolder);
-        }
-        sortOutputFiles(outputFolder);
-    }
-
+    /**
+     * Initializes the products by creating them from variants and configuration
+     * files.
+     * 
+     * This method collects variant directories, starts the product creation
+     * process, and returns a list of ProductInitializationTask objects.
+     * 
+     * @return A list of ProductInitializationTask objects representing the
+     *         initialized products.
+     */
     public List<ProductInitializationTask> initialize() {
         // creates products from variants and config files
         Logger.info("Collecting variant dirs...");
@@ -442,9 +425,19 @@ public class TraceBoosting {
         return products;
     }
 
+    /**
+     * Computes mappings for the given target language and returns a MainTree object
+     * containing the mappings.
+     * 
+     * @return MainTree object containing the mappings
+     * @throws IllegalStateException if an unexpected target language is provided
+     */
     public MainTree computeMappings() {
+        // Initialize variables
         allFeatures = new EccoSet<>();
         final AbstractAST mainAST;
+
+        // Determine mainAST based on targetLanguage
         switch (targetLanguage) {
             case C:
                 mainAST = new CAST();
@@ -458,67 +451,131 @@ public class TraceBoosting {
             default:
                 throw new IllegalStateException("Unexpected value: " + targetLanguage);
         }
+
+        // Create MainTree object with mainAST
         final MainTree mainTree = new MainTree(mainAST);
+
+        // Extract associations using traceExtractionAlgorithm
         final EccoSet<Association> associations = traceExtractionAlgorithm(mainTree);
+
+        // Assign proactive traces to associations
         assignProactiveTraces(associations);
 
-        // translates mappings from associations back to products
+        // Translate mappings from associations back to products
         Logger.info("Translating mappings from associations back to products...");
         for (final Association association : associations) {
             if (association.getMapping() == null) {
-                // Only calculate a mapping for associations that have no proactive mapping yet
+                // Calculate mapping for associations without proactive mapping
                 determineAssociationMapping(association);
             }
 
-            // now put mappings from associations back on individual nodes
+            // Assign mappings from associations to individual nodes
             for (final ASTNode node : association.getAstNodes()) {
                 if (node.getMapping() == null) {
                     node.setMapping(association.getMapping());
                 }
             }
         }
-        Logger.info("...done.");
-        // result file now contains products with mapped ASTs
+        Logger.info("Mapping translation complete.");
+
+        // Return MainTree object with mapped ASTs
         return mainTree;
     }
 
+    /**
+     * Returns an array of strings containing the paths for the input folder, input
+     * file, results folder, and results file.
+     * 
+     * @return an array of strings containing the paths for the input folder, input
+     *         file, results folder, and results file
+     */
     public String[] getPaths() {
         return new String[] { getInputFolder(), getInputFile(), getResultsFolder(),
                 getResultsFile() };
     }
 
+    /**
+     * Gets the input folder path.
+     *
+     * @return The input folder path as a String.
+     */
     public String getInputFolder() {
         return inputFolder;
     }
 
+    /**
+     * Sets the input folder path.
+     *
+     * @param inputFolder The input folder path to set.
+     */
     public void setInputFolder(final String inputFolder) {
         this.inputFolder = inputFolder;
     }
 
+    /**
+     * Gets the input file name.
+     *
+     * @return The input file name as a String.
+     */
     public String getInputFile() {
         return inputFile;
     }
 
+    /**
+     * Sets the input file name.
+     *
+     * @param inputFile The input file name to set.
+     */
     public void setInputFile(final String inputFile) {
         this.inputFile = inputFile;
     }
 
+    /**
+     * Gets the results folder path.
+     *
+     * @return The results folder path as a String.
+     */
     public String getResultsFolder() {
         return resultsFolder;
     }
 
+    /**
+     * Sets the results folder path.
+     *
+     * @param resultsFolder The results folder path to set.
+     */
     public void setResultsFolder(final String resultsFolder) {
         this.resultsFolder = resultsFolder;
     }
 
+    /**
+     * Gets the results file name.
+     *
+     * @return The results file name as a String.
+     */
     public String getResultsFile() {
         return resultsFile;
     }
 
+    /**
+     * Sets the results file name.
+     *
+     * @param resultsFile The results file name to set.
+     */
     public void setResultsFile(final String resultsFile) {
         this.resultsFile = resultsFile;
     }
 
+    /**
+     * Sets the paths for input and results folders and files.
+     * 
+     * @param inputFolder   the name of the input folder
+     * @param inputFile     the name of the input file
+     * @param resultsFolder the name of the results folder
+     * @param resultsFile   the name of the results file
+     * @throws UncheckedIOException if an I/O error occurs while creating
+     *                              directories
+     */
     public void setPaths(final String inputFolder, final String inputFile,
             final String resultsFolder, final String resultsFile) {
         final String inputFolderPath = workingDir + "/" + inputFolder;
@@ -537,6 +594,15 @@ public class TraceBoosting {
         setResultsFile(resultsFile);
     }
 
+    /**
+     * Extracts associations from a given main tree by merging each product AST into
+     * the main tree and collecting corresponding main tree nodes in the product for
+     * backtracking later on.
+     *
+     * @param mainTree The main tree to extract associations from
+     * @return An EccoSet of Association objects representing the extracted
+     *         associations
+     */
     public EccoSet<Association> traceExtractionAlgorithm(final MainTree mainTree) {
         int productCount = 0;
         EccoSet<Association> associations = new EccoSet<>();
@@ -614,6 +680,20 @@ public class TraceBoosting {
         return associations;
     }
 
+    /**
+     * Assigns proactive traces to associations in the given EccoSet.
+     * 
+     * This method uses a thread pool to assign proactive traces to associations in
+     * parallel. It checks each association in the EccoSet for existing mappings and
+     * sets the mapping for the association based on the number of existing mappings
+     * found. If there is only one existing mapping, it sets the mapping for the
+     * association. If there are no existing mappings or more than one existing
+     * mapping, it does not set the mapping for the association.
+     * 
+     * @param associations the EccoSet of associations to assign proactive traces to
+     * @throws RuntimeException if there is an error while assigning proactive
+     *                          traces
+     */
     private void assignProactiveTraces(EccoSet<Association> associations) {
         ExecutorService threadPool = Executors.newFixedThreadPool(nThreads);
         List<Future<Integer>> futures = new ArrayList<>();
@@ -658,7 +738,23 @@ public class TraceBoosting {
         threadPool.shutdown();
     }
 
+    /**
+     * Determines the mapping for the given association.
+     * 
+     * This method calculates the formula for the association based on the smallest
+     * min modules or smallest max modules. If the association is basic, it
+     * considers the disjunction of all products. Otherwise, it continues with the
+     * min modules.
+     * 
+     * @param association The Association object for which the mapping needs to be
+     *                    determined
+     * @throws IllegalArgumentException if the association is null
+     */
     private void determineAssociationMapping(Association association) {
+        if (association == null) {
+            throw new IllegalArgumentException("Association cannot be null");
+        }
+
         // Calculate the formula for the association
         List<Module> modules = association.getSmallestMinModules();
         final Formula formula;
@@ -680,6 +776,7 @@ public class TraceBoosting {
                 return f.cnf(literals);
             }).collect(Collectors.toList()));
         }
+
         // simplify mappings to minimal formulas
         if (mapping_calculation.equals("DNF")) {
             final Formula dnf1 = formula.transform(dnf_simplifier_1);
@@ -716,6 +813,12 @@ public class TraceBoosting {
         }
     }
 
+    /**
+     * Starts the process of creating products by initializing
+     * ProductInitializationTasks for each source location.
+     * 
+     * @return A list of ProductInitializationTasks, one for each source location
+     */
     private List<ProductInitializationTask> startProductCreation() {
         Logger.info("Creating products");
         final Product[] products = new Product[sourceLocations.size()];
@@ -723,11 +826,13 @@ public class TraceBoosting {
         final List<ProductInitializationTask> tasks = new ArrayList<>(products.length);
         for (int i = 0; i < sourceLocations.size(); i++) {
             tasks.add(new ProductInitializationTask(i, sourceLocations.get(i), targetLanguage));
-
         }
         return tasks;
     }
 
+    /**
+     * A class representing a wrapper for a String value.
+     */
     private static class StringWrapper {
         String value;
 
