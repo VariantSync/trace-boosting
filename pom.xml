@@ -80,7 +80,7 @@
                         <configuration>
                             <outputDirectory>${project.basedir}/docs</outputDirectory>
                             <destDir>${project.basedir}/docs</destDir>
-                            <show>public protected</show>
+                            <show>protected</show>
                         </configuration>
                     </execution>
                 </executions>
