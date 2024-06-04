@@ -24,34 +24,6 @@ import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 public class TraceBoosting {
-
-    /*
-     * This is how mappings can be changed (if no changes are to be made, only do 1
-     * and 7): 1.
-     * create an object ecco_light of class TraceBoosting (it will initialize
-     * products
-     * automatically)
-     * 2. after initializing, load the products using
-     * loadProducts(ecco_light.getInputFolder(),
-     * ecco_light.getInputFile()) 3a. choose a node from Product i using
-     * products[i].getNodeFromPosition(position) and assign the mapping that fits
-     * the position
-     * (compare them by using position.isBefore(otherPosition) and
-     * position.isAfter(otherPosition))
-     * or 3b. go through all nodes using products[i].getAstNodes() and choose a
-     * mapping for each
-     * node by comparing node.getStartPosition() to your mapping's position (compare
-     * them by using
-     * position.isBefore(otherPosition) and position.isAfter(otherPosition)) 4. set
-     * the mapping
-     * (which must be of type Formula) for the chosen node using
-     * node.setMapping(mapping) 5a. repeat
-     * 3a and 4 until all mappings have been set 6. save the altered products using
-     * saveProducts(products, ecco_light.getInputFolder(),
-     * ecco_light.getInputFile()) 7. run the
-     * algorithm by ecco_light.computeEcco();
-     */
-
     private static final DNFFactorization dnf_simplifier_1 = new DNFFactorization();
     private static final DNFSubsumption dnf_simplifier_2 = new DNFSubsumption();
     public static FormulaFactory f = new FormulaFactory();
@@ -64,54 +36,16 @@ public class TraceBoosting {
         f.putConfiguration(builder.build());
     }
 
-    // scenario contains the name of the ArgoUML scenario, basDir contains the name
-    // of the path
-    // leading to the scenario
     private final List<ProductPassport> sourceLocations;
     private final ESupportedLanguages targetLanguage;
-    // private Product[] eccoProducts;
-    // short explanation: "DNF" for taking the DNF formula and consider every
-    // clause, "CNF" for
-    // taking the CNF formula and removing clauses containing disjunctions
     /*
-     * long explanation: We have implemented two different ways of how ECCO chooses
-     * features
-     * associated with a piece of code. Each product has a unique configuration
-     * (combination of
-     * features that are present or not), which is represented as a conjunctive
-     * formula of feature
-     * literals. Option 1: Set mapping_calculation to "DNF" ECCO associates a piece
-     * of code with a
-     * configuration if and only if the code appears in a product with that
-     * configuration. ECCO
-     * takes the disjunction of the associated configurations, since the code
-     * appears if either one
-     * of them is present. ECCO simplifies the formula as a DNF formula and returns
-     * that as the
-     * mapping of the code. Now each clause of the mapping is a condition that
-     * causes the peace of
-     * code to appear. Option 2 (currently used): Set mapping_calculation to "CNF"
-     * ECCO uses a
-     * heuristic to simplify the mapping in a sensible way. As in option 1, ECCO
-     * takes the
-     * disjunction of the configurations associated with a piece of code. ECCO then
-     * simplifies the
-     * resulting formula to a CNF formula. If all clauses in the CNF formula contain
-     * disjunctions,
-     * ECCO sets the mapping to the simplified DNF formula as in option 1.
-     * Otherwise, ECCO reduces
-     * the formula to the conjunction of all simple clauses (clauses that contain no
-     * disjunctions
-     * and are therefore just literals) and returns that as the mapping.. In that
-     * case, the mapping
-     * consists of one condition that causes the piece of code to appear.
+     * Set mapping_calculation to "CNF".
+     * TraceBoosting uses a heuristic to simplify the mapping in a sensible way. As
+     * in option 1, TraceBoosting takes the disjunction of the configurations
+     * associated with a piece of code. TraceBoosting then simplifies the resulting
+     * formula to a CNF formula.
      */
     public String mapping_calculation = "CNF";
-    // inputFolder contains the products object (inputFile) java needs (after they
-    // have been
-    // transformed into ASTs)
-    // resultsFolder will contain the products object (resultsFile) with mappings
-    // after running ECCO
     private String inputFolder, inputFile, resultsFolder, resultsFile;
     private final Path workingDir;
 
@@ -161,34 +95,6 @@ public class TraceBoosting {
         ProductSaveTask.resetProcessedCount();
         Logger.info("Saved all products.");
     }
-
-    // public void saveProducts(
-    // final List<Future<ProductInitializationTask.InitResult>> products,
-    // final String folderName) {
-    // final List<Future<?>> futures = new ArrayList<>(products.size());
-    // try(ExecutorService threadPool = Executors.newFixedThreadPool(this.nThreads))
-    // {
-    // products.stream().map(f -> {
-    // try {
-    // return f.get();
-    // } catch (final InterruptedException | ExecutionException e) {
-    // Logger.error("Was not able to initialize product.", e);
-    // throw new RuntimeException(e);
-    // }
-    // }).forEach(result -> {
-    // final ProductSaveTask task = new ProductSaveTask(result.product, folderName,
-    // result.id);
-    // futures.add(threadPool.submit(task));
-    // allFeatures.addAll(result.allFeatures);
-    // });
-    // wait(futures);
-    // } catch (ExecutionException | InterruptedException e) {
-    // Logger.error("threading: ", e);
-    // throw new RuntimeException(e);
-    // }
-    // ProductSaveTask.resetProcessedCount();
-    // Logger.info("Saved all products.");
-    // }
 
     public List<Product> getProducts() {
         // Multi-threaded loading of products
@@ -375,17 +281,6 @@ public class TraceBoosting {
         }
     }
 
-    /*
-     * for each class type node add Class qualified name for each method type node
-     * add Method
-     * qualified name for each statement node where class is non-solid add Class
-     * qualified name plus
-     * refinement tag for each statement node where method is non-solid add Method
-     * qualified name
-     * plus refinement tag (non-solid means that the class/method declaration in
-     * which the node
-     * appears does not have the same mapping)
-     */
     private static String getTrace(final ASTNode astNode, final Formula mapping) {
         final String result;
         if (astNode.getType() != ASTNode.NODE_TYPE.CLASS_OR_INTERFACE_DECLARATION
@@ -431,13 +326,6 @@ public class TraceBoosting {
         }
     }
 
-    // private <T extends Callable<V>, V> List<Future<V>> submitToThreadPool(final
-    // List<T> tasks) {
-    // final List<Future<V>> futures = new ArrayList<>(tasks.size());
-    // tasks.forEach(t -> futures.add(threadPool.submit(t)));
-    // return futures;
-    // }
-
     public void evaluate(final AbstractAST mainTree, final String outputFolder) {
         Logger.info("start evaluation");
         final Map<String, List<String>> fileToTraceMap = new HashMap<>();
@@ -478,7 +366,7 @@ public class TraceBoosting {
         return products;
     }
 
-    public MainTree computeEcco() {
+    public MainTree computeMappings() {
         allFeatures = new EccoSet<>();
         final AbstractAST mainAST;
         switch (targetLanguage) {
@@ -542,7 +430,6 @@ public class TraceBoosting {
                 } else {
                     // Do nothing. If there is no existing mapping, we do not know anything. If
                     // there is more than one, we cannot decide.
-                    // TODO: Handle more than one mapping
                     return 0;
                 }
             }));
@@ -762,17 +649,9 @@ public class TraceBoosting {
             Logger.info("...done.");
         }
 
-        // I tried simplifying all associations at the end - instead of simplifying them
-        // on the fly
-        // - but it was much slower
-        // TODO what does she mean by simplifying here?
-        // maybe it was just inefficiently implemented?
         return associations;
     }
 
-    /**
-     * Corresponds to f2m in paper.
-     */
     private static EccoSet<Module> featuresToModules(final EccoSet<Feature> positiveFeatures,
             final EccoSet<Feature> negativeFeatures) {
         final EccoSet<Module> result = new EccoSet<>();
@@ -797,11 +676,6 @@ public class TraceBoosting {
         return result;
     }
 
-    /**
-     * Corresponds to uM function in paper.
-     * 
-     * @return updated module set
-     */
     private static EccoSet<Module> updateModules(final EccoSet<Module> moduleSet,
             final EccoSet<Feature> negativeFeatures) {
         final EccoSet<Module> result = new EccoSet<>();
