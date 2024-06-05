@@ -11,7 +11,7 @@ that the number of variants compared affects the effectiveness of the boosted tr
 TraceBoosting is an algorithm designed to enhance retroactive feature tracing with proactively collected feature traces. 
 It is particularly useful for projects with multiple product variants, where it can improve the accuracy and efficiency of the tracing process. 
 This projects presents a prototype of our algorithm that boosts comparison-based retroactive feature tracing. 
-The used retroactive tracing method is heavily inspired by ECCO.
+The used retroactive comparison-based tracing method is inspired by the algorithm used by the tool [ECCO](https://jku-isse.github.io/ecco/).
 
 ## Dependencies
 - [Java using JDK17 or newer](https://www.oracle.com/java/technologies/downloads/)
