@@ -3,9 +3,10 @@
 # trace-boosting: Give an Inch and Take a Mile? Effects of Adding Reliable Knowledge to Heuristic Feature Tracing
 
 ## Overview
-This research artifact is based on the findings of our SPLC 2024 paper on boosting retroactive feature tracing techniques with proactive traces. 
-Our paper explores how providing a minimal seed of accurate feature traces proactively can significantly enhance the accuracy of automated, heuristic-based retroactive tracing. 
-The paper demonstrates that increasing amounts of proactive information can boost the overall accuracy of the tracing and that the number of variants compared affects the effectiveness of the combined tracing approach.
+This research artifact contains the boosted retroactive comparison-based feature tracing algorithm as presented in our [SPLC 2024 paper]().
+In the paper, we explore how minimal seeds of proactive feature traces enhance the accuracy of automated, heuristic-based retroactive tracing. 
+Our results demonstrate that only small amounts of proactive feature information can boost the overall accuracy of the tracing and 
+that the number of variants compared affects the effectiveness of the boosted tracing approach.
 
 TraceBoosting is an algorithm designed to enhance retroactive feature tracing with proactively collected feature traces. 
 It is particularly useful for projects with multiple product variants, where it can improve the accuracy and efficiency of the tracing process. 
@@ -42,14 +43,17 @@ Add the following dependency to your `pom.xml` file:
 ## Usage
 To use the TraceBoosting algorithm, follow these steps:
 
-1. Initialize a list to hold `ProductPassport` objects that describe the artifact locations for each variant.
-2. Iterate over the collection of variants for which traces are to be computed, creating a `ProductPassport` for each and adding it to the list.
-3. Instantiate the TraceBoosting algorithm with the product passports, working directory, and the supported language for tracing.
-4. Retrieve the list of products from the TraceBoosting instance.
-5. Apply the proactively collected traces to the products by settings the mappings for the products' AST nodes.
-6. Compute the Main tree, which represents the merged variant AST with feature traces.
+1. Initialize an empty list to hold `ProductPassport` objects that comprise the artifact locations for each variant.
+2. Iterate the collection of variants for which traces are to be computed, create a `ProductPassport` for each variant and add it to the list.
+3. Instantiate the TraceBoosting algorithm with 
+   - the list of product passports, 
+   - the working directory, and 
+   - the 'language' used for parsing in the tracing algorithm (e.g. a generic, line-based parsing of lines into artifact nodes).
+4. Retrieve the list of products from the TraceBoosting instance, which are abstracted as AST structures.
+5. Apply the proactively collected feature traces to the products by settings the mappings for the respective nodes in the products' AST.
+6. Compute the Main tree, which represents the AST with feature traces, resulting from merging the products.
 
-Here is a code snippet demonstrating how to use the TraceBoosting algorithm:
+The following code snippet demonstrates how to use the TraceBoosting algorithm:
 
 ```java
 List<ProductPassport> productPassports = new ArrayList<>();
