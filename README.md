@@ -4,14 +4,24 @@
 
 ## Overview
 This research artifact contains the boosted retroactive comparison-based feature tracing algorithm as presented in our [SPLC 2024 paper]().
+
 In the paper, we explore how minimal seeds of proactive feature traces enhance the accuracy of automated, heuristic-based retroactive tracing. 
 Our results demonstrate that only small amounts of proactive feature information can boost the overall accuracy of the tracing and 
 that the number of variants compared affects the effectiveness of the boosted tracing approach.
 
-TraceBoosting is an algorithm designed to enhance retroactive feature tracing with proactively collected feature traces. 
-It is particularly useful for projects with multiple product variants, where it can improve the accuracy and efficiency of the tracing process. 
-This projects presents a prototype of our algorithm that boosts comparison-based retroactive feature tracing. 
-The used retroactive comparison-based tracing method is inspired by the algorithm used by the tool [ECCO](https://jku-isse.github.io/ecco/).
+<img alt="Comparison-Based Feature Tracing" src="docs/boostedTracingConcept.png" height="500" />
+
+TraceBoosting, as sketched conceptually in above figure, is an algorithm designed to enhance retroactive feature tracing with proactively collected feature traces. 
+Particularly, this implementation compares multiple product variants which are represented as artifact trees.
+It builds sets of co-occurring artifacts by matching the trees and computes sets of possible and impossible features for these co-occurring artifact sets based on the respective configuration in which they occur.
+This heuristic retroactive comparison-based tracing method is inspired by the algorithm used in the tool [ECCO](https://jku-isse.github.io/ecco/).
+
+To increase the accuracy and efficiency of the heuristic algorithm, 
+we integrate proactive knowledge (represented as rectangles attached to artifact nodes in above figure).
+Each time a proactive feature trace is available in a co-occuring artifact set and not contradicting another proactive trace, 
+the expression of the proactive trace is mapped onto all artifact nodes in the set. 
+In this way, we can propagate the reliable knowledge, provided typically by humans, to the remaining artifact nodes in a co-occuring artifact set and eventually, 
+spread the information across variants.
 
 ## Dependencies
 - [Java using JDK17 or newer](https://www.oracle.com/java/technologies/downloads/)
