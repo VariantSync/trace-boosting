@@ -2,7 +2,7 @@ package org.variantsync.boosting.product;
 
 import org.variantsync.boosting.TraceBoosting;
 import org.variantsync.boosting.datastructure.ASTNode;
-import org.variantsync.boosting.datastructure.EccoSet;
+import org.variantsync.boosting.datastructure.CustomHashSet;
 import org.variantsync.boosting.datastructure.Feature;
 import org.variantsync.boosting.parsing.AbstractAST;
 import org.variantsync.boosting.parsing.JavaAST;
@@ -27,13 +27,13 @@ import java.util.stream.Collectors;
  * nodes of the product AST.
  */
 public class Product implements Serializable {
-    private final EccoSet<Feature> features;
+    private final CustomHashSet<Feature> features;
     private final String name;
     // the original product AST
     private AbstractAST productAST;
     // the AST nodes of the main tree that correspond to the AST nodes of the
     // product AST
-    private EccoSet<ASTNode> astNodesMainTree;
+    private CustomHashSet<ASTNode> astNodesMainTree;
 
     /**
      * Constructs a new Product object with the given parameters.
@@ -43,8 +43,8 @@ public class Product implements Serializable {
      * @param productAST       the abstract syntax tree for the product
      * @param features         the set of features associated with the product
      */
-    public Product(final String name, final EccoSet<ASTNode> astNodesMainTree, final AbstractAST productAST,
-            final EccoSet<Feature> features) {
+    public Product(final String name, final CustomHashSet<ASTNode> astNodesMainTree, final AbstractAST productAST,
+                   final CustomHashSet<Feature> features) {
         this.name = name;
         this.astNodesMainTree = astNodesMainTree;
         this.productAST = productAST;
@@ -64,7 +64,7 @@ public class Product implements Serializable {
         this.name = other.name;
 
         // Create a new set of ASTNodes to copy from the other Product object
-        final EccoSet<ASTNode> nodesToCopy = new EccoSet<>(other.astNodesMainTree);
+        final CustomHashSet<ASTNode> nodesToCopy = new CustomHashSet<>(other.astNodesMainTree);
         nodesToCopy.addAll(other.productAST.getAstNodes());
         nodesToCopy.add(other.productAST.getRoot());
 
@@ -72,19 +72,19 @@ public class Product implements Serializable {
         final Map<ASTNode, ASTNode> originalToCopyMap = copyAstNodes(nodesToCopy);
 
         // Copy the ASTNodes from the other Product object and update the main tree
-        final EccoSet<ASTNode> astNodes = new EccoSet<>(
+        final CustomHashSet<ASTNode> astNodes = new CustomHashSet<>(
                 other.astNodesMainTree
                         .stream()
                         .map(originalToCopyMap::get)
-                        .collect(Collectors.toCollection(EccoSet::new)));
-        this.astNodesMainTree = new EccoSet<>(astNodes);
+                        .collect(Collectors.toCollection(CustomHashSet::new)));
+        this.astNodesMainTree = new CustomHashSet<>(astNodes);
 
         // Copy the ASTNodes from the other Product object and update the tree
-        final EccoSet<ASTNode> treeNodes = new EccoSet<>(
+        final CustomHashSet<ASTNode> treeNodes = new CustomHashSet<>(
                 other.productAST.getAstNodes()
                         .stream()
                         .map(originalToCopyMap::get)
-                        .collect(Collectors.toCollection(EccoSet::new)));
+                        .collect(Collectors.toCollection(CustomHashSet::new)));
 
         // Create a new productAST object based on the type of the other Product
         // object's productAST
@@ -99,7 +99,7 @@ public class Product implements Serializable {
         }
 
         // Copy the features from the other Product object
-        this.features = new EccoSet<>(other.getFeatures());
+        this.features = new CustomHashSet<>(other.getFeatures());
     }
 
     /**
@@ -114,7 +114,7 @@ public class Product implements Serializable {
      *
      * @return The set of features associated with the product.
      */
-    public EccoSet<Feature> getFeatures() {
+    public CustomHashSet<Feature> getFeatures() {
         return features;
     }
 
@@ -123,7 +123,7 @@ public class Product implements Serializable {
      * 
      * @return a set of AST nodes in the main tree
      */
-    public EccoSet<ASTNode> getAstNodesMainTree() {
+    public CustomHashSet<ASTNode> getAstNodesMainTree() {
         return astNodesMainTree;
     }
 
@@ -201,11 +201,11 @@ public class Product implements Serializable {
      *
      * @param astNodesMainTree the AST nodes for the main tree
      */
-    public void setAstNodesMainTree(final EccoSet<ASTNode> astNodesMainTree) {
+    public void setAstNodesMainTree(final CustomHashSet<ASTNode> astNodesMainTree) {
         this.astNodesMainTree = astNodesMainTree;
     }
 
-    private static Map<ASTNode, ASTNode> copyAstNodes(final EccoSet<ASTNode> astNodes) {
+    private static Map<ASTNode, ASTNode> copyAstNodes(final CustomHashSet<ASTNode> astNodes) {
         final Map<ASTNode, ASTNode> originalToCopyMap = new HashMap<>();
         for (final var node : astNodes) {
             final ASTNode nodeCopy;
@@ -236,7 +236,7 @@ public class Product implements Serializable {
             // Handle children
             {
                 final var children = node.getChildren();
-                final EccoSet<ASTNode> childrenOfCopy = nodeCopy.getChildren();
+                final CustomHashSet<ASTNode> childrenOfCopy = nodeCopy.getChildren();
                 for (final var child : children) {
                     final ASTNode childCopy;
                     if (!originalToCopyMap.containsKey(child)) {

@@ -40,15 +40,15 @@ public class MainTree implements Serializable {
      * @return The set of all nodes in the resulting main tree corresponding to the
      *         nodes of this AST.
      */
-    public EccoSet<ASTNode> unite(final Product product) {
-        final EccoSet<ASTNode> result = new EccoSet<>();
+    public CustomHashSet<ASTNode> unite(final Product product) {
+        final CustomHashSet<ASTNode> result = new CustomHashSet<>();
         uniteChildren(result, product.getProductAst().getRoot(), tree.getRoot(), product);
         tree.getAstNodes().addAll(result);
         return result;
     }
 
-    private void uniteChildren(final EccoSet<ASTNode> result, final ASTNode productNode, final ASTNode nodeMainTree,
-            final Product product) {
+    private void uniteChildren(final CustomHashSet<ASTNode> result, final ASTNode productNode, final ASTNode nodeMainTree,
+                               final Product product) {
         for (final ASTNode productChild : productNode.getChildren()) {
             Set<ProductPosition> productPositions = new HashSet<>();
 
@@ -101,8 +101,8 @@ public class MainTree implements Serializable {
         }
     }
 
-    private void addAllSubNodes(final EccoSet<ASTNode> result, final ASTNode mainTreeParent,
-            final EccoSet<ASTNode> productChildren, final Product product) {
+    private void addAllSubNodes(final CustomHashSet<ASTNode> result, final ASTNode mainTreeParent,
+                                final CustomHashSet<ASTNode> productChildren, final Product product) {
         for (final ASTNode child : productChildren) {
             final ASTNode childCopy = new ASTNode(mainTreeParent, child.getCode(), UnspecifiedPosition.INSTANCE,
                     child.getType(), child.getMapping());

@@ -4,15 +4,15 @@ import java.util.Collection;
 import java.util.HashSet;
 
 /**
- * A custom set implementation to handle sets similar to how they are defined by
- * ECCO.
+ * A customized generic implementation of a hash set
+ * with additional functionality like building powersets or uniting two sets of elements.
  */
-public class EccoSet<E> extends HashSet<E> {
+public class CustomHashSet<E> extends HashSet<E> {
 
     /**
      * Constructs a new EccoSet with no elements.
      */
-    public EccoSet() {
+    public CustomHashSet() {
         super();
     }
 
@@ -22,7 +22,7 @@ public class EccoSet<E> extends HashSet<E> {
      * @param elements the collection of elements to initialize the set with
      * @throws NullPointerException if the specified collection is null
      */
-    public EccoSet(final Collection<E> elements) {
+    public CustomHashSet(final Collection<E> elements) {
         super(elements);
     }
 
@@ -41,8 +41,8 @@ public class EccoSet<E> extends HashSet<E> {
      * @return A new set that contains the union of elements from this set and the
      *         given set
      */
-    public EccoSet<E> unite(final EccoSet<E> toUnite) {
-        final EccoSet<E> result = new EccoSet<>(this);
+    public CustomHashSet<E> unite(final CustomHashSet<E> toUnite) {
+        final CustomHashSet<E> result = new CustomHashSet<>(this);
         result.addAll(toUnite);
         return result;
     }
@@ -54,8 +54,8 @@ public class EccoSet<E> extends HashSet<E> {
      * @return A new set that contains the union of elements from this set and the
      *         given set
      */
-    public EccoSet<E> uniteElement(final E toUnite) {
-        final EccoSet<E> result = new EccoSet<>(this);
+    public CustomHashSet<E> uniteElement(final E toUnite) {
+        final CustomHashSet<E> result = new CustomHashSet<>(this);
         result.add(toUnite);
         return result;
     }
@@ -68,8 +68,8 @@ public class EccoSet<E> extends HashSet<E> {
      * @return New set with elements that are only in this set but not in the given
      *         set
      */
-    public EccoSet<E> without(final EccoSet<E> without) {
-        final EccoSet<E> result = new EccoSet<>(this);
+    public CustomHashSet<E> without(final CustomHashSet<E> without) {
+        final CustomHashSet<E> result = new CustomHashSet<>(this);
         result.removeAll(without);
         return result;
     }
@@ -82,8 +82,8 @@ public class EccoSet<E> extends HashSet<E> {
      * @return New set with elements that are only in this set but not in the given
      *         set
      */
-    public EccoSet<E> withoutElement(final E without) {
-        final EccoSet<E> result = new EccoSet<>(this);
+    public CustomHashSet<E> withoutElement(final E without) {
+        final CustomHashSet<E> result = new CustomHashSet<>(this);
         result.remove(without);
         return result;
     }
@@ -95,8 +95,8 @@ public class EccoSet<E> extends HashSet<E> {
      * @return a new set with the elements that represent the intersection of both
      *         sets
      */
-    public EccoSet<E> intersect(final EccoSet<E> toIntersect) {
-        final EccoSet<E> result = new EccoSet<>(this);
+    public CustomHashSet<E> intersect(final CustomHashSet<E> toIntersect) {
+        final CustomHashSet<E> result = new CustomHashSet<>(this);
         result.retainAll(toIntersect);
         return result;
     }
@@ -108,8 +108,8 @@ public class EccoSet<E> extends HashSet<E> {
      * @return a new set with the elements that represent the intersection of both
      *         sets
      */
-    public EccoSet<E> intersectElement(final E toIntersect) {
-        final EccoSet<E> result = new EccoSet<>(this);
+    public CustomHashSet<E> intersectElement(final E toIntersect) {
+        final CustomHashSet<E> result = new CustomHashSet<>(this);
         if (this.contains(toIntersect)) {
             result.add(toIntersect);
         }
@@ -124,12 +124,12 @@ public class EccoSet<E> extends HashSet<E> {
     /**
      * Returns the power set of this set.
      */
-    public EccoSet<EccoSet<E>> powerSet() {
+    public CustomHashSet<CustomHashSet<E>> powerSet() {
         return powerSet(this);
     }
 
-    private EccoSet<EccoSet<E>> powerSet(final EccoSet<E> input) {
-        final EccoSet<EccoSet<E>> result = new EccoSet<>();
+    private CustomHashSet<CustomHashSet<E>> powerSet(final CustomHashSet<E> input) {
+        final CustomHashSet<CustomHashSet<E>> result = new CustomHashSet<>();
         result.add(input);
         for (final E element : input) {
             result.addAll(powerSet(input.withoutElement(element)));

@@ -5,7 +5,7 @@ import com.github.javaparser.utils.CodeGenerationUtils;
 import com.github.javaparser.utils.SourceRoot;
 
 import org.variantsync.boosting.datastructure.ASTNode;
-import org.variantsync.boosting.datastructure.EccoSet;
+import org.variantsync.boosting.datastructure.CustomHashSet;
 
 import java.io.File;
 
@@ -24,7 +24,7 @@ public class JavaAST extends AbstractAST {
         super(rootFile, ".java");
     }
 
-    public JavaAST(final ASTNode root, final EccoSet<ASTNode> astNodes) {
+    public JavaAST(final ASTNode root, final CustomHashSet<ASTNode> astNodes) {
         super(root, astNodes, ".java");
     }
 

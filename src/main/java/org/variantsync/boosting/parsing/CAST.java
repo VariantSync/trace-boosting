@@ -3,7 +3,7 @@ package org.variantsync.boosting.parsing;
 import java.io.File;
 
 import org.variantsync.boosting.datastructure.ASTNode;
-import org.variantsync.boosting.datastructure.EccoSet;
+import org.variantsync.boosting.datastructure.CustomHashSet;
 
 /**
  * Represents a Syntax Tree (CAST) for C source code files.
@@ -40,7 +40,7 @@ public class CAST extends LineAST {
      * @param root     The root node for the CAST.
      * @param astNodes The set of AST nodes for the CAST.
      */
-    public CAST(final ASTNode root, final EccoSet<ASTNode> astNodes) {
+    public CAST(final ASTNode root, final CustomHashSet<ASTNode> astNodes) {
         super(root, astNodes, fileTypes);
     }
 }

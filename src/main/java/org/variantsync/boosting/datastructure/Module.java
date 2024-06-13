@@ -11,14 +11,14 @@ import java.util.Objects;
  * modules and retrieving information about the literals it contains.
  */
 public class Module {
-    private final EccoSet<Literal> literals;
+    private final CustomHashSet<Literal> literals;
 
     /**
      * Constructs a new Module with the given set of literals.
      * 
      * @param literals The set of literals to be contained in the module
      */
-    public Module(final EccoSet<Literal> literals) {
+    public Module(final CustomHashSet<Literal> literals) {
         this.literals = literals;
     }
 
@@ -53,7 +53,7 @@ public class Module {
      * 
      * @return The set of literals contained in this Module
      */
-    public EccoSet<Literal> getLiterals() {
+    public CustomHashSet<Literal> getLiterals() {
         return literals;
     }
 

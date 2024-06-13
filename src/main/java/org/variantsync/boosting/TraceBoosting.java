@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -35,11 +34,8 @@ import org.logicng.transformations.dnf.DNFFactorization;
 import org.logicng.transformations.dnf.DNFSubsumption;
 import org.tinylog.Logger;
 
-import org.variantsync.boosting.datastructure.ASTNode;
-import org.variantsync.boosting.datastructure.Association;
-import org.variantsync.boosting.datastructure.EccoSet;
-import org.variantsync.boosting.datastructure.Feature;
-import org.variantsync.boosting.datastructure.MainTree;
+import org.variantsync.boosting.datastructure.*;
+import org.variantsync.boosting.datastructure.CustomHashSet;
 import org.variantsync.boosting.datastructure.Module;
 import org.variantsync.boosting.parsing.AbstractAST;
 import org.variantsync.boosting.parsing.CAST;
@@ -48,8 +44,6 @@ import org.variantsync.boosting.parsing.JavaAST;
 import org.variantsync.boosting.parsing.LineAST;
 import org.variantsync.boosting.product.Product;
 import org.variantsync.boosting.product.ProductInitializationTask;
-import org.variantsync.boosting.product.ProductLoadTask;
-import org.variantsync.boosting.product.ProductLoader;
 import org.variantsync.boosting.product.ProductPassport;
 import org.variantsync.boosting.product.ProductSaveTask;
 
@@ -289,19 +283,19 @@ public class TraceBoosting {
         }
     }
 
-    private static EccoSet<Module> featuresToModules(final EccoSet<Feature> positiveFeatures,
-                                                     final EccoSet<Feature> negativeFeatures) {
-        final EccoSet<Module> result = new EccoSet<>();
-        final EccoSet<EccoSet<Feature>> positivePowerSet = positiveFeatures.powerSet();
-        final EccoSet<EccoSet<Feature>> negativePowerSet = negativeFeatures.powerSet();
+    private static CustomHashSet<Module> featuresToModules(final CustomHashSet<Feature> positiveFeatures,
+                                                           final CustomHashSet<Feature> negativeFeatures) {
+        final CustomHashSet<Module> result = new CustomHashSet<>();
+        final CustomHashSet<CustomHashSet<Feature>> positivePowerSet = positiveFeatures.powerSet();
+        final CustomHashSet<CustomHashSet<Feature>> negativePowerSet = negativeFeatures.powerSet();
 
         // Create all possible modules
-        for (final EccoSet<Feature> posSet : positivePowerSet) {
+        for (final CustomHashSet<Feature> posSet : positivePowerSet) {
             if (posSet.isEmpty()) {
                 continue;
             }
-            for (final EccoSet<Feature> negSet : negativePowerSet) {
-                final EccoSet<Literal> literals = new EccoSet<>();
+            for (final CustomHashSet<Feature> negSet : negativePowerSet) {
+                final CustomHashSet<Literal> literals = new CustomHashSet<>();
                 posSet.stream().map(feature -> f.literal(feature.getName(), true))
                         .forEach(literals::add);
                 negSet.stream().map(feature -> f.literal(feature.getName(), false))
@@ -313,13 +307,13 @@ public class TraceBoosting {
         return result;
     }
 
-    private static EccoSet<Module> updateModules(final EccoSet<Module> moduleSet,
-            final EccoSet<Feature> negativeFeatures) {
-        final EccoSet<Module> result = new EccoSet<>();
-        final EccoSet<EccoSet<Feature>> negativePowerSet = negativeFeatures.powerSet();
+    private static CustomHashSet<Module> updateModules(final CustomHashSet<Module> moduleSet,
+                                                       final CustomHashSet<Feature> negativeFeatures) {
+        final CustomHashSet<Module> result = new CustomHashSet<>();
+        final CustomHashSet<CustomHashSet<Feature>> negativePowerSet = negativeFeatures.powerSet();
         for (final Module module : moduleSet) {
-            for (final EccoSet<Feature> negSet : negativePowerSet) {
-                final EccoSet<Literal> negLiterals = new EccoSet<>();
+            for (final CustomHashSet<Feature> negSet : negativePowerSet) {
+                final CustomHashSet<Literal> negLiterals = new CustomHashSet<>();
                 negSet.stream().map(feature -> f.literal(feature.getName(), false))
                         .forEach(negLiterals::add);
                 result.add(new Module(module.getLiterals().unite(negLiterals)));
@@ -328,7 +322,7 @@ public class TraceBoosting {
         return result;
     }
 
-    private EccoSet<Feature> allFeatures;
+    private CustomHashSet<Feature> allFeatures;
 
     private int nThreads = Runtime.getRuntime().availableProcessors();
 
@@ -362,7 +356,7 @@ public class TraceBoosting {
         this.productInitTasks = initialize();
     }
 
-    public EccoSet<Feature> getAllFeatures() {
+    public CustomHashSet<Feature> getAllFeatures() {
         return allFeatures;
     }
 
@@ -417,46 +411,6 @@ public class TraceBoosting {
         return this.products;
     }
 
-    public Product[] loadProducts(final String inputFolder) {
-        final ProductLoader loader = prepareProductLoader(inputFolder);
-        final List<Product> products = new LinkedList<>();
-        loader.forEachRemaining(products::add);
-        return products.toArray(new Product[0]);
-    }
-
-    public Product[] loadProducts(final Collection<Path> productLocations) {
-        final List<ProductLoadTask> tasks = new ArrayList<>();
-        for (final Path productPath : productLocations) {
-            final ProductLoadTask task = new ProductLoadTask(productPath);
-            tasks.add(task);
-        }
-
-        final ProductLoader loader = new ProductLoader(tasks, this.nThreads);
-        final List<Product> products = new LinkedList<>();
-        loader.forEachRemaining(products::add);
-        return products.toArray(new Product[0]);
-    }
-
-    public ProductLoader prepareProductLoader(final String folderName) {
-        Logger.info("Loading all products from " + folderName);
-        final Path pathToInput = Path.of(folderName);
-        final List<Path> productPaths;
-        try {
-            productPaths = Files.list(pathToInput).filter(p -> p.toString().endsWith(".product"))
-                    .collect(Collectors.toList());
-            productPaths.sort(Path::compareTo);
-        } catch (final IOException e) {
-            Logger.error("Was not able to read input directory.", e);
-            throw new RuntimeException(e);
-        }
-        final List<ProductLoadTask> tasks = new ArrayList<>();
-        for (final Path productPath : productPaths) {
-            final ProductLoadTask task = new ProductLoadTask(productPath);
-            tasks.add(task);
-        }
-
-        return new ProductLoader(tasks, this.nThreads);
-    }
 
     /**
      * Initializes the products by creating them from variants and configuration
@@ -471,7 +425,7 @@ public class TraceBoosting {
     public List<ProductInitializationTask> initialize() {
         // creates products from variants and config files
         Logger.info("Collecting variant dirs...");
-        allFeatures = new EccoSet<>();
+        allFeatures = new CustomHashSet<>();
         final List<ProductInitializationTask> products = startProductCreation();
         // saveProducts(products, inputFolder);
         // Logger.info("Parsing and saving of products complete.");
@@ -488,7 +442,7 @@ public class TraceBoosting {
      */
     public MainTree computeMappings() {
         // Initialize variables
-        allFeatures = new EccoSet<>();
+        allFeatures = new CustomHashSet<>();
         final AbstractAST mainAST;
 
         // Determine mainAST based on targetLanguage
@@ -510,7 +464,7 @@ public class TraceBoosting {
         final MainTree mainTree = new MainTree(mainAST);
 
         // Extract associations using traceExtractionAlgorithm
-        final EccoSet<Association> associations = traceExtractionAlgorithm(mainTree);
+        final CustomHashSet<Association> associations = extractAssociationsComparisonBased(mainTree);
 
         // Assign proactive traces to associations
         assignProactiveTraces(associations);
@@ -657,9 +611,9 @@ public class TraceBoosting {
      * @return An EccoSet of Association objects representing the extracted
      *         associations
      */
-    public EccoSet<Association> traceExtractionAlgorithm(final MainTree mainTree) {
+    public CustomHashSet<Association> extractAssociationsComparisonBased(final MainTree mainTree) {
         int productCount = 0;
-        EccoSet<Association> associations = new EccoSet<>();
+        CustomHashSet<Association> associations = new CustomHashSet<>();
         for (Product product : this.getProducts()) {
             // merge each product AST into the main tree and collect corresponding main tree
             // nodes
@@ -671,14 +625,14 @@ public class TraceBoosting {
             product.forgetAST();
 
             Logger.info("Considering product " + productCount + "...");
-            final EccoSet<Feature> productFeatures = product.getFeatures();
-            final EccoSet<Feature> negFeatures = productFeatures.without(allFeatures);
-            final EccoSet<Module> modules = featuresToModules(productFeatures, allFeatures.without(productFeatures));
+            final CustomHashSet<Feature> productFeatures = product.getFeatures();
+            final CustomHashSet<Feature> negFeatures = productFeatures.without(allFeatures);
+            final CustomHashSet<Module> modules = featuresToModules(productFeatures, allFeatures.without(productFeatures));
             allFeatures.addAll(productFeatures);
-            Association aNew = new Association(modules, modules, modules, new EccoSet<>(),
+            Association aNew = new Association(modules, modules, modules, new CustomHashSet<>(),
                     product.getAstNodesMainTree());
 
-            final EccoSet<Association> newAssociations = new EccoSet<>();
+            final CustomHashSet<Association> newAssociations = new CustomHashSet<>();
             for (final Association association : associations) {
                 // Update modules in association
                 Association updatedAssociation = new Association(
@@ -689,7 +643,7 @@ public class TraceBoosting {
                         association.getAstNodes());
 
                 // Intersect ASTs
-                final EccoSet<ASTNode> intNodes = updatedAssociation.getAstNodes().intersect(aNew.getAstNodes());
+                final CustomHashSet<ASTNode> intNodes = updatedAssociation.getAstNodes().intersect(aNew.getAstNodes());
 
                 // compute intersection
                 final Association aInt = new Association(
@@ -706,7 +660,7 @@ public class TraceBoosting {
                 updatedAssociation.removeNodes(intNodes);
                 updatedAssociation = new Association(
                         updatedAssociation.getMin().without(aInt.getMin()),
-                        updatedAssociation.getAll(), new EccoSet<>(),
+                        updatedAssociation.getAll(), new CustomHashSet<>(),
                         updatedAssociation.getNot().unite(aNew.getAll()),
                         updatedAssociation.getAstNodes());
                 updatedAssociation
@@ -714,7 +668,7 @@ public class TraceBoosting {
                 // set mapping for code appearing in aNew but in not association
                 aNew.removeNodes(intNodes);
                 aNew = new Association(aNew.getMin().without(aInt.getMin()), aNew.getAll(),
-                        new EccoSet<>(), aNew.getNot().unite(updatedAssociation.getAll()),
+                        new CustomHashSet<>(), aNew.getNot().unite(updatedAssociation.getAll()),
                         aNew.getAstNodes());
                 aNew.setMax(aNew.getAll().without(aNew.getNot()));
 
@@ -748,7 +702,7 @@ public class TraceBoosting {
      * @throws RuntimeException if there is an error while assigning proactive
      *                          traces
      */
-    private void assignProactiveTraces(EccoSet<Association> associations) {
+    private void assignProactiveTraces(CustomHashSet<Association> associations) {
         ExecutorService threadPool = Executors.newFixedThreadPool(nThreads);
         List<Future<Integer>> futures = new ArrayList<>();
         for (Association assoc : associations) {
@@ -819,14 +773,14 @@ public class TraceBoosting {
                 formula = f.verum();
             } else {
                 formula = f.or(modules.stream().map(m -> {
-                    final EccoSet<Literal> literals = m.getLiterals();
+                    final CustomHashSet<Literal> literals = m.getLiterals();
                     return f.cnf(literals);
                 }).collect(Collectors.toList()));
             }
         } else {
             // Continue with the min modules
             formula = f.and(modules.stream().map(m -> {
-                final EccoSet<Literal> literals = m.getLiterals();
+                final CustomHashSet<Literal> literals = m.getLiterals();
                 return f.cnf(literals);
             }).collect(Collectors.toList()));
         }

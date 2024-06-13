@@ -1,7 +1,7 @@
 package org.variantsync.boosting.parsing;
 
 import org.variantsync.boosting.datastructure.ASTNode;
-import org.variantsync.boosting.datastructure.EccoSet;
+import org.variantsync.boosting.datastructure.CustomHashSet;
 import org.variantsync.boosting.position.FilePosition;
 import org.variantsync.boosting.position.RootPosition;
 
@@ -20,7 +20,7 @@ import java.util.Set;
  */
 public abstract class AbstractAST implements Serializable {
     protected final ASTNode root;
-    protected final EccoSet<ASTNode> astNodes;
+    protected final CustomHashSet<ASTNode> astNodes;
     protected final Set<String> fileTypes;
 
     /**
@@ -32,7 +32,7 @@ public abstract class AbstractAST implements Serializable {
         this.fileTypes = new HashSet<>();
         Collections.addAll(this.fileTypes, fileTypes);
         root = new ASTNode(null, null, RootPosition.INSTANCE, ASTNode.NODE_TYPE.ROOT, null);
-        astNodes = new EccoSet<>();
+        astNodes = new CustomHashSet<>();
     }
 
     /**
@@ -57,7 +57,7 @@ public abstract class AbstractAST implements Serializable {
      * @param astNodes  the set of AST nodes in the tree
      * @param fileTypes an array of file types to filter the AST nodes by
      */
-    public AbstractAST(final ASTNode root, final EccoSet<ASTNode> astNodes,
+    public AbstractAST(final ASTNode root, final CustomHashSet<ASTNode> astNodes,
             final String... fileTypes) {
         this.fileTypes = new HashSet<>();
         Collections.addAll(this.fileTypes, fileTypes);
@@ -71,8 +71,8 @@ public abstract class AbstractAST implements Serializable {
      * 
      * @return a set containing all nodes of the AST
      */
-    public EccoSet<ASTNode> collectAstNodes() {
-        final EccoSet<ASTNode> result = new EccoSet<>();
+    public CustomHashSet<ASTNode> collectAstNodes() {
+        final CustomHashSet<ASTNode> result = new CustomHashSet<>();
         final ArrayList<ASTNode> nodesToVisit = new ArrayList<>();
         nodesToVisit.add(this.getRoot());
         while (!nodesToVisit.isEmpty()) {
@@ -144,7 +144,7 @@ public abstract class AbstractAST implements Serializable {
      *
      * @return a set of all AST nodes
      */
-    public EccoSet<ASTNode> getAstNodes() {
+    public CustomHashSet<ASTNode> getAstNodes() {
         return astNodes;
     }
 

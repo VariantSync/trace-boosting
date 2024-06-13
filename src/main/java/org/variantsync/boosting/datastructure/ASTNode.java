@@ -30,7 +30,7 @@ public class ASTNode implements Serializable {
 
     private final String code;
     private ASTNode parent;
-    private final EccoSet<ASTNode> children;
+    private final CustomHashSet<ASTNode> children;
     private final NODE_TYPE type;
     private transient Position startPosition;
     private transient Formula mapping;
@@ -48,7 +48,7 @@ public class ASTNode implements Serializable {
         this.startPosition = Objects.requireNonNull(position);
         this.type = type;
         this.mapping = mapping;
-        children = new EccoSet<>();
+        children = new CustomHashSet<>();
         productEquivalent = null;
     }
 
@@ -145,7 +145,7 @@ public class ASTNode implements Serializable {
     /**
      * Returns a set of this node's child nodes.
      */
-    public EccoSet<ASTNode> getChildren() {
+    public CustomHashSet<ASTNode> getChildren() {
         return children;
     }
 
@@ -164,8 +164,8 @@ public class ASTNode implements Serializable {
      * Returns set set of all possible mappings (if the mapping is a DNF formula,
      * each clause is a possible mapping on its own) for this node.
      */
-    public EccoSet<Formula> getMappings() {
-        final EccoSet<Formula> mappings = new EccoSet<>();
+    public CustomHashSet<Formula> getMappings() {
+        final CustomHashSet<Formula> mappings = new CustomHashSet<>();
         if (mapping.type() == FType.OR) {
             for (final Formula clause : mapping) {
                 mappings.add(clause);

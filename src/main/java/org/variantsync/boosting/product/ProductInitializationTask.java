@@ -2,7 +2,7 @@ package org.variantsync.boosting.product;
 
 import org.tinylog.Logger;
 
-import org.variantsync.boosting.datastructure.EccoSet;
+import org.variantsync.boosting.datastructure.CustomHashSet;
 import org.variantsync.boosting.datastructure.Feature;
 import org.variantsync.boosting.parsing.AbstractAST;
 import org.variantsync.boosting.parsing.CAST;
@@ -27,7 +27,7 @@ public class ProductInitializationTask implements Callable<ProductInitialization
     private final String productName;
     private final File configPath;
     private final File sourcePath;
-    private final EccoSet<Feature> allFeatures;
+    private final CustomHashSet<Feature> allFeatures;
     private final ESupportedLanguages usedLanguage;
 
     /**
@@ -45,7 +45,7 @@ public class ProductInitializationTask implements Callable<ProductInitialization
         this.productName = passport.getName();
         this.configPath = passport.getConfiguration().toFile();
         this.sourcePath = passport.getSourcesRoot().toFile();
-        this.allFeatures = new EccoSet<>();
+        this.allFeatures = new CustomHashSet<>();
         this.usedLanguage = targetLanguage;
     }
 
@@ -73,7 +73,7 @@ public class ProductInitializationTask implements Callable<ProductInitialization
                 throw new UncheckedIOException(ex);
             }
         }
-        final EccoSet<Feature> productFeatures = new EccoSet<>();
+        final CustomHashSet<Feature> productFeatures = new CustomHashSet<>();
         for (final String featureString : featureStrings) {
             final Feature newFeature = new Feature(featureString);
             productFeatures.add(newFeature);
@@ -99,7 +99,7 @@ public class ProductInitializationTask implements Callable<ProductInitialization
         }
 
         return new InitResult(productNumber, allFeatures,
-                new Product(productName, new EccoSet<>(), productAst, productFeatures));
+                new Product(productName, new CustomHashSet<>(), productAst, productFeatures));
     }
 
     /**
@@ -116,7 +116,7 @@ public class ProductInitializationTask implements Callable<ProductInitialization
         /**
          * A set of all features associated with the initialization.
          */
-        public final EccoSet<Feature> allFeatures;
+        public final CustomHashSet<Feature> allFeatures;
 
         /**
          * The product associated with the initialization.
@@ -131,7 +131,7 @@ public class ProductInitializationTask implements Callable<ProductInitialization
          * @param allFeatures A set of all features associated with the initialization.
          * @param product     The product associated with the initialization.
          */
-        public InitResult(final int id, final EccoSet<Feature> allFeatures, final Product product) {
+        public InitResult(final int id, final CustomHashSet<Feature> allFeatures, final Product product) {
             this.id = id;
             this.allFeatures = allFeatures;
             this.product = product;

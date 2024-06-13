@@ -3,7 +3,7 @@ package org.variantsync.boosting.parsing;
 import org.tinylog.Logger;
 
 import org.variantsync.boosting.datastructure.ASTNode;
-import org.variantsync.boosting.datastructure.EccoSet;
+import org.variantsync.boosting.datastructure.CustomHashSet;
 import org.variantsync.boosting.position.LinePosition;
 import org.variantsync.boosting.position.Position;
 
@@ -51,7 +51,7 @@ public class LineAST extends AbstractAST {
      * @param astNodes  the set of AST nodes
      * @param fileTypes the file types to be used for parsing
      */
-    public LineAST(final ASTNode root, final EccoSet<ASTNode> astNodes, final String... fileTypes) {
+    public LineAST(final ASTNode root, final CustomHashSet<ASTNode> astNodes, final String... fileTypes) {
         super(root, astNodes, fileTypes);
     }
 

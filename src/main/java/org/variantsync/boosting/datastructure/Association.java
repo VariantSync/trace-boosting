@@ -29,11 +29,11 @@ import java.util.*;
  * association objects based on their components.
  */
 public class Association {
-    private EccoSet<ASTNode> astNodes;
-    private EccoSet<Module> min;
-    private EccoSet<Module> all;
-    private EccoSet<Module> max;
-    private EccoSet<Module> not;
+    private CustomHashSet<ASTNode> astNodes;
+    private CustomHashSet<Module> min;
+    private CustomHashSet<Module> all;
+    private CustomHashSet<Module> max;
+    private CustomHashSet<Module> not;
     private Formula mapping;
     // isBasic tells whether the code of the association appears in all products
     private boolean isBasic;
@@ -48,13 +48,13 @@ public class Association {
      * @param not      the set of modules that are not in the association
      * @param astNodes the set of AST nodes associated with the modules
      */
-    public Association(final EccoSet<Module> min, final EccoSet<Module> all, final EccoSet<Module> max,
-                       final EccoSet<Module> not, final EccoSet<ASTNode> astNodes) {
-        this.min = new EccoSet<>(min);
-        this.all = new EccoSet<>(all);
-        this.max = new EccoSet<>(max);
-        this.not = new EccoSet<>(not);
-        this.astNodes = astNodes == null ? new EccoSet<>() : astNodes;
+    public Association(final CustomHashSet<Module> min, final CustomHashSet<Module> all, final CustomHashSet<Module> max,
+                       final CustomHashSet<Module> not, final CustomHashSet<ASTNode> astNodes) {
+        this.min = new CustomHashSet<>(min);
+        this.all = new CustomHashSet<>(all);
+        this.max = new CustomHashSet<>(max);
+        this.not = new CustomHashSet<>(not);
+        this.astNodes = astNodes == null ? new CustomHashSet<>() : astNodes;
         this.isBasic = true;
         this.mapping = null;
     }
@@ -84,7 +84,7 @@ public class Association {
      * @return a set of ASTNode objects representing the AST
      *         nodes
      */
-    public EccoSet<ASTNode> getAstNodes() {
+    public CustomHashSet<ASTNode> getAstNodes() {
         return astNodes;
     }
 
@@ -96,7 +96,7 @@ public class Association {
      * @throws NullPointerException if the specified set of nodes to be removed is
      *                              null.
      */
-    public void removeNodes(final EccoSet<ASTNode> toRemove) {
+    public void removeNodes(final CustomHashSet<ASTNode> toRemove) {
         if (toRemove == null) {
             throw new NullPointerException("The specified set of nodes to be removed cannot be null.");
         }
@@ -127,7 +127,7 @@ public class Association {
      * 
      * @return the min modules
      */
-    public EccoSet<Module> getMin() {
+    public CustomHashSet<Module> getMin() {
         return min;
     }
 
@@ -136,7 +136,7 @@ public class Association {
      * 
      * @return the all modules
      */
-    public EccoSet<Module> getAll() {
+    public CustomHashSet<Module> getAll() {
         return all;
     }
 
@@ -145,7 +145,7 @@ public class Association {
      * 
      * @return the max modules
      */
-    public EccoSet<Module> getMax() {
+    public CustomHashSet<Module> getMax() {
         return max;
     }
 
@@ -154,7 +154,7 @@ public class Association {
      * 
      * @return the not modules
      */
-    public EccoSet<Module> getNot() {
+    public CustomHashSet<Module> getNot() {
         return not;
     }
 
@@ -182,7 +182,7 @@ public class Association {
      * @param modules the EccoSet of modules to search for the smallest ones
      * @return a list of the smallest modules from the given EccoSet
      */
-    private List<Module> getSmallestModules(final EccoSet<Module> modules) {
+    private List<Module> getSmallestModules(final CustomHashSet<Module> modules) {
         final List<Module> result = new LinkedList<>();
         int size = Integer.MAX_VALUE;
         for (final Module module : modules) {
@@ -204,7 +204,7 @@ public class Association {
      * 
      * @param min a set of min modules
      */
-    public void setMin(final EccoSet<Module> min) {
+    public void setMin(final CustomHashSet<Module> min) {
         this.min = min;
     }
 
@@ -213,7 +213,7 @@ public class Association {
      * 
      * @param all a set of all modules
      */
-    public void setAll(final EccoSet<Module> all) {
+    public void setAll(final CustomHashSet<Module> all) {
         this.all = all;
     }
 
@@ -222,7 +222,7 @@ public class Association {
      * 
      * @param max a set of max modules
      */
-    public void setMax(final EccoSet<Module> max) {
+    public void setMax(final CustomHashSet<Module> max) {
         this.max = max;
     }
 
@@ -231,7 +231,7 @@ public class Association {
      * 
      * @param not a set of not modules
      */
-    public void setNot(final EccoSet<Module> not) {
+    public void setNot(final CustomHashSet<Module> not) {
         this.not = not;
     }
 
