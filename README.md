@@ -12,16 +12,18 @@ that the number of variants compared affects the effectiveness of the boosted tr
 <img alt="Comparison-Based Feature Tracing" src="docs/boostedTracingConcept.png" height="500" />
 
 TraceBoosting, as sketched conceptually in above figure, is an algorithm designed to enhance retroactive feature tracing with proactively collected feature traces. 
-Particularly, this implementation compares multiple product variants which are represented as artifact trees.
-It builds sets of co-occurring artifacts by matching the trees and computes sets of possible and impossible features for these co-occurring artifact sets based on the respective configuration in which they occur.
+Particularly, this implementation compares multiple product variants which are _parsed_ into artifact trees (V1-V3).
+It builds sets of co-occurring artifacts (CA1-CA5) by matching the tree nodess and edges and computes sets of possible and impossible features for these co-occurring artifact sets 
+based on the respective configuration in which the tree elements occur.
 This heuristic retroactive comparison-based tracing method is inspired by the algorithm used in the tool [ECCO](https://jku-isse.github.io/ecco/).
 
 To increase the accuracy and efficiency of the heuristic algorithm, 
 we integrate proactive knowledge (represented as rectangles attached to artifact nodes in above figure).
-Each time a proactive feature trace is available in a co-occuring artifact set and not contradicting another proactive trace, 
+Each time a proactive feature trace is available in a co-occuring artifact set and does not contradict another proactive trace, 
 the expression of the proactive trace is mapped onto all artifact nodes in the set. 
-In this way, we can propagate the reliable knowledge, provided typically by humans, to the remaining artifact nodes in a co-occuring artifact set and eventually, 
-spread the information across variants.
+In this way, we can propagate the highly reliable knowledge of the proactive trace, 
+provided typically by humans, to the remaining artifact nodes in a co-occuring artifact set and, thus, essentially 
+spread the information across variants overriding the heuristcally determined annotation.
 
 ## Dependencies
 - [Java using JDK17 or newer](https://www.oracle.com/java/technologies/downloads/)
