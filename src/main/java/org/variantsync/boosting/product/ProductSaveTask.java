@@ -15,19 +15,19 @@ import java.nio.file.Paths;
  */
 public class ProductSaveTask implements Runnable {
     private static int processedCount = 0;
-    private final Product product;
+    private final Variant variant;
     private final String folderName;
     private final int id;
 
     /**
      * Constructor for ProductSaveTask.
      * 
-     * @param product    The product to be saved.
+     * @param variant    The product to be saved.
      * @param folderName The name of the folder where the product will be saved.
      * @param id         The unique identifier of the product.
      */
-    public ProductSaveTask(final Product product, final String folderName, final int id) {
-        this.product = product;
+    public ProductSaveTask(final Variant variant, final String folderName, final int id) {
+        this.variant = variant;
         this.folderName = folderName;
         this.id = id;
     }
@@ -39,7 +39,7 @@ public class ProductSaveTask implements Runnable {
      */
     @Override
     public void run() {
-        final String filePath = folderName + "/" + product.getName().replaceAll("Variant", "product-") + ".product";
+        final String filePath = folderName + "/" + variant.getName().replaceAll("Variant", "product-") + ".product";
         synchronized (ProductSaveTask.class) {
             Logger.info("#" + processedCount + ": Saving product " + id + " to " + filePath);
             processedCount++;
@@ -51,7 +51,7 @@ public class ProductSaveTask implements Runnable {
             throw new UncheckedIOException(e);
         }
         try (final ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(filePath))) {
-            out.writeObject(product);
+            out.writeObject(variant);
         } catch (final IOException e) {
             Logger.error("Was not able to write products to " + filePath, e);
             throw new UncheckedIOException(e);

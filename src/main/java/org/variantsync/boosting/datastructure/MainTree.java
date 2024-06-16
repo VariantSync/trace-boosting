@@ -4,7 +4,7 @@ import org.variantsync.boosting.TraceBoosting;
 import org.variantsync.boosting.parsing.AbstractAST;
 import org.variantsync.boosting.position.ProductPosition;
 import org.variantsync.boosting.position.UnspecifiedPosition;
-import org.variantsync.boosting.product.Product;
+import org.variantsync.boosting.product.Variant;
 
 import org.logicng.formulas.Formula;
 
@@ -36,19 +36,19 @@ public class MainTree implements Serializable {
      * main AST (main tree) and returns the set of all nodes
      * in the resulting main tree corresponding to the nodes of this AST.
      *
-     * @param product The product containing the main tree to merge this AST into.
+     * @param variant The product containing the main tree to merge this AST into.
      * @return The set of all nodes in the resulting main tree corresponding to the
      *         nodes of this AST.
      */
-    public CustomHashSet<ASTNode> unite(final Product product) {
+    public CustomHashSet<ASTNode> unite(final Variant variant) {
         final CustomHashSet<ASTNode> result = new CustomHashSet<>();
-        uniteChildren(result, product.getProductAst().getRoot(), tree.getRoot(), product);
+        uniteChildren(result, variant.getProductAst().getRoot(), tree.getRoot(), variant);
         tree.getAstNodes().addAll(result);
         return result;
     }
 
     private void uniteChildren(final CustomHashSet<ASTNode> result, final ASTNode productNode, final ASTNode nodeMainTree,
-                               final Product product) {
+                               final Variant variant) {
         for (final ASTNode productChild : productNode.getChildren()) {
             Set<ProductPosition> productPositions = new HashSet<>();
 
@@ -68,7 +68,7 @@ public class MainTree implements Serializable {
                         mainTreeEquivalent.setMapping(productChild.getMapping());
                     }
                 }
-                uniteChildren(result, productChild, mainTreeEquivalent, product);
+                uniteChildren(result, productChild, mainTreeEquivalent, variant);
             } else {
                 // add a copy of the product child node to the main tree
                 final ASTNode childToAdd = new ASTNode(nodeMainTree, productChild.getCode(),
@@ -79,9 +79,9 @@ public class MainTree implements Serializable {
                 positionMap.put(childToAdd, productPositions);
                 // add the new node and all its children to the result (since they become
                 // corresponding nodes of the main tree)
-                addAllSubNodes(result, childToAdd, productChild.getChildren(), product);
+                addAllSubNodes(result, childToAdd, productChild.getChildren(), variant);
             }
-            productPositions.add(new ProductPosition(product, productChild.getStartPosition()));
+            productPositions.add(new ProductPosition(variant, productChild.getStartPosition()));
         }
     }
 
@@ -102,7 +102,7 @@ public class MainTree implements Serializable {
     }
 
     private void addAllSubNodes(final CustomHashSet<ASTNode> result, final ASTNode mainTreeParent,
-                                final CustomHashSet<ASTNode> productChildren, final Product product) {
+                                final CustomHashSet<ASTNode> productChildren, final Variant variant) {
         for (final ASTNode child : productChildren) {
             final ASTNode childCopy = new ASTNode(mainTreeParent, child.getCode(), UnspecifiedPosition.INSTANCE,
                     child.getType(), child.getMapping());
@@ -110,11 +110,11 @@ public class MainTree implements Serializable {
             childCopy.setParent(mainTreeParent);
             result.add(childCopy);
             final Set<ProductPosition> productPositions = new HashSet<>();
-            productPositions.add(new ProductPosition(product, child.getStartPosition()));
+            productPositions.add(new ProductPosition(variant, child.getStartPosition()));
             positionMap.put(childCopy, productPositions);
 
-            productPositions.add(new ProductPosition(product, child.getStartPosition()));
-            addAllSubNodes(result, childCopy, child.getChildren(), product);
+            productPositions.add(new ProductPosition(variant, child.getStartPosition()));
+            addAllSubNodes(result, childCopy, child.getChildren(), variant);
         }
     }
 

@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
  * It also stores the AST nodes of the main tree that correspond to the AST
  * nodes of the product AST.
  */
-public class Product implements Serializable {
+public class Variant implements Serializable {
     private final CustomHashSet<Feature> features;
     private final String name;
     // the original product AST
@@ -43,7 +43,7 @@ public class Product implements Serializable {
      * @param productAST       the abstract syntax tree for the product
      * @param features         the set of features associated with the product
      */
-    public Product(final String name, final CustomHashSet<ASTNode> astNodesMainTree, final AbstractAST productAST,
+    public Variant(final String name, final CustomHashSet<ASTNode> astNodesMainTree, final AbstractAST productAST,
                    final CustomHashSet<Feature> features) {
         this.name = name;
         this.astNodesMainTree = astNodesMainTree;
@@ -59,7 +59,7 @@ public class Product implements Serializable {
      * @throws UnsupportedOperationException if the productAST type is not JavaAST
      *                                       or LineAST
      */
-    public Product(final Product other) {
+    public Variant(final Variant other) {
         // Copy the name from the other Product object
         this.name = other.name;
 
@@ -287,10 +287,10 @@ public class Product implements Serializable {
     public boolean equals(final Object o) {
         if (this == o)
             return true;
-        if (!(o instanceof Product))
+        if (!(o instanceof Variant))
             return false;
-        final Product product = (Product) o;
-        return features.equals(product.features);
+        final Variant variant = (Variant) o;
+        return features.equals(variant.features);
     }
 
     @Override

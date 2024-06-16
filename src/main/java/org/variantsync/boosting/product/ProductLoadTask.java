@@ -45,7 +45,7 @@ public class ProductLoadTask implements Callable<ProductLoadTask.LoadResult> {
                 Logger.info("#" + processedCount + ": Loading product " + id + " from " + productPath);
                 processedCount++;
             }
-            return new LoadResult(id, (Product) in.readObject());
+            return new LoadResult(id, (Variant) in.readObject());
         } catch (final IOException e) {
             Logger.error("Was not able to read file: ", e);
             throw new UncheckedIOException(e);
@@ -68,12 +68,12 @@ public class ProductLoadTask implements Callable<ProductLoadTask.LoadResult> {
      */
     public static class LoadResult {
         public final int id;
-        public final Product product;
+        public final Variant variant;
 
-        public LoadResult(final int id, final Product product) {
+        public LoadResult(final int id, final Variant variant) {
             Logger.info("#" + id + ": Finished loading.");
             this.id = id;
-            this.product = product;
+            this.variant = variant;
         }
     }
 }

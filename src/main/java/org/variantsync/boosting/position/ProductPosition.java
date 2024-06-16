@@ -1,6 +1,6 @@
 package org.variantsync.boosting.position;
 
-import org.variantsync.boosting.product.Product;
+import org.variantsync.boosting.product.Variant;
 
 import java.io.Serializable;
 import java.nio.file.Path;
@@ -10,17 +10,17 @@ import java.util.Objects;
  * Represents a mapping between a Product and a Position.
  */
 public class ProductPosition implements Serializable {
-    public final Product product;
+    public final Variant variant;
     public final Position position;
 
     /**
      * Constructs a new ProductPosition object with the given Product and Position.
      * 
-     * @param product  The Product object to associate with this ProductPosition.
+     * @param variant  The Product object to associate with this ProductPosition.
      * @param position The Position object to associate with this ProductPosition.
      */
-    public ProductPosition(final Product product, final Position position) {
-        this.product = product;
+    public ProductPosition(final Variant variant, final Position position) {
+        this.variant = variant;
         this.position = position;
     }
 
@@ -37,7 +37,7 @@ public class ProductPosition implements Serializable {
         if (!(o instanceof ProductPosition))
             return false;
         final ProductPosition that = (ProductPosition) o;
-        return Objects.equals(product, that.product) && Objects.equals(position, that.position);
+        return Objects.equals(variant, that.variant) && Objects.equals(position, that.position);
     }
 
     /**
@@ -47,7 +47,7 @@ public class ProductPosition implements Serializable {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(product, position);
+        return Objects.hash(variant, position);
     }
 
     /**

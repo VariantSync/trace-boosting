@@ -17,7 +17,7 @@ import java.util.concurrent.Future;
  * It then creates a thread pool with the specified number of threads and
  * submits tasks to load products.
  */
-public class ProductLoader implements Iterator<Product> {
+public class ProductLoader implements Iterator<Variant> {
     private final List<ProductLoadTask> remainingTasks;
     private final List<Future<ProductLoadTask.LoadResult>> futures;
     private final ExecutorService threadPool;
@@ -58,14 +58,14 @@ public class ProductLoader implements Iterator<Product> {
      * @throws RuntimeException if an error occurs while loading the product
      */
     @Override
-    public Product next() {
+    public Variant next() {
         if (!this.remainingTasks.isEmpty()) {
             futures.add(threadPool.submit(remainingTasks.remove(0)));
         } else {
             this.threadPool.shutdown();
         }
         try {
-            return futures.remove(0).get().product;
+            return futures.remove(0).get().variant;
         } catch (final InterruptedException | ExecutionException e) {
             throw new RuntimeException(e);
         }

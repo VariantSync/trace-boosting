@@ -6,7 +6,7 @@ import java.nio.file.Path;
  * The ProductPassport collects the information about the product name,
  * sources root, and configuration path.
  */
-public class ProductPassport {
+public class VariantPassport {
     private final String name;
     private final Path sourcesRoot;
     private final Path configuration;
@@ -19,7 +19,7 @@ public class ProductPassport {
      * @param sourcesRoot   the root path for the product sources
      * @param configuration the path to the product configuration
      */
-    public ProductPassport(final String name, final Path sourcesRoot, final Path configuration) {
+    public VariantPassport(final String name, final Path sourcesRoot, final Path configuration) {
         this.name = name;
         this.sourcesRoot = sourcesRoot;
         this.configuration = configuration;

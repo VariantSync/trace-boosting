@@ -42,10 +42,10 @@ import org.variantsync.boosting.parsing.CAST;
 import org.variantsync.boosting.parsing.ESupportedLanguages;
 import org.variantsync.boosting.parsing.JavaAST;
 import org.variantsync.boosting.parsing.LineAST;
-import org.variantsync.boosting.product.Product;
-import org.variantsync.boosting.product.ProductInitializationTask;
-import org.variantsync.boosting.product.ProductPassport;
-import org.variantsync.boosting.product.ProductSaveTask;
+import org.variantsync.boosting.product.Variant;
+import org.variantsync.boosting.product.VariantInitTask;
+import org.variantsync.boosting.product.VariantPassport;
+
 
 /**
  * The {@code TraceBoosting} class encapsulates the algorithm for enhancing
@@ -78,17 +78,17 @@ import org.variantsync.boosting.product.ProductSaveTask;
  * TraceBoosting traceBoosting = new TraceBoosting(productPassports,
  *         workingDirectory, ESupportedLanguages.LINES);
  *
- * // Retrieve the list of products from the TraceBoosting instance
- * List<Product> products = traceBoosting.getProducts();
+ *      // Retrieve the list of products from the TraceBoosting instance
+ *      List<Product> products = traceBoosting.getProducts();
  *
- * // Apply the proactively collected traces to the products
- * distributeMappings(products, variantGenerationResult.variantGroundTruthMap(),
+ *      // Apply the proactively collected traces to the products
+ *       distributeMappings(products, variantGenerationResult.variantGroundTruthMap(),
  *         percentage, config.getStrip());
  *
- * // Compute the main tree which represents the AST resulting from merging all variants
- * // together with feature traces
- * MainTree mainTree = traceBoosting.compute();
- * }</pre>
+ *      // Compute the main tree which represents the AST resulting from merging all variants
+ *      // together with feature traces
+ *      MainTree mainTree = traceBoosting.computeMappings();
+ *  }</pre>
  *
  * <p>
  * Note: The actual implementation of methods like {@code distributeMappings}
@@ -121,29 +121,43 @@ public class TraceBoosting {
         return f;
     }
 
-    /**
-     * Saves the main tree object to a file in the specified folder.
-     *
-     * @param mainTree   The MainTree object to be saved
-     * @param folderName The name of the folder where the file will be saved
-     * @throws UncheckedIOException If an IOException occurs while creating
-     *                              directories or writing the object to the file
+    private CustomHashSet<Feature> allFeatures;
+    private int nThreads = Runtime.getRuntime().availableProcessors();
+    private final List<VariantPassport> sourceLocations;
+    private final ESupportedLanguages targetLanguage;
+
+    /*
+     * Set mapping_calculation to "CNF".
+     * TraceBoosting uses a heuristic to simplify the mapping in a sensible way. As
+     * in option 1, TraceBoosting takes the disjunction of the configurations
+     * associated with a piece of code. TraceBoosting then simplifies the resulting
+     * formula to a CNF formula.
      */
-    public static void saveMainTree(final MainTree mainTree, final String folderName) {
-        final String filePath = folderName + "/main-tree.ast";
-        Logger.info("Saving main tree to " + filePath);
-        try {
-            Files.createDirectories(Paths.get(folderName));
-        } catch (final IOException e) {
-            Logger.error("Was not able to create directories for " + folderName, e);
-            throw new UncheckedIOException(e);
-        }
-        try (final ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(filePath))) {
-            out.writeObject(mainTree);
-        } catch (final IOException e) {
-            Logger.error("Was not able to write products to " + filePath, e);
-            throw new UncheckedIOException(e);
-        }
+    public String mapping_calculation = "CNF";
+
+    private String inputFolder, inputFile, resultsFolder, resultsFile;
+    private final Path workingDir;
+    private final List<VariantInitTask> productInitTasks;
+    private final List<Variant> variants = new ArrayList<>();
+
+    public TraceBoosting(final List<VariantPassport> sourceLocations, final Path workingDir,
+                         final ESupportedLanguages targetLanguage) {
+        this.sourceLocations = sourceLocations;
+        this.targetLanguage = targetLanguage;
+        this.workingDir = workingDir;
+        setPaths("input", "input", "results", "result");
+        this.productInitTasks = initialize();
+    }
+
+    public CustomHashSet<Feature> getAllFeatures() {
+        return allFeatures;
+    }
+
+    public void setNumThreads(final int numThreads) {
+        Logger.info("Updating thread pool...");
+        Logger.info("Shutting down old pool");
+        Logger.info("Created new pool with " + numThreads + " threads.");
+        this.nThreads = numThreads;
     }
 
     /**
@@ -169,225 +183,31 @@ public class TraceBoosting {
     }
 
     /**
-     * Waits for all the futures in the given collection to complete.
-     * 
-     * @param futures a collection of Future objects to wait for
-     * @throws ExecutionException   if any of the futures encounter an exception
-     *                              during execution
-     * @throws InterruptedException if the current thread is interrupted while
-     *                              waiting
+     * Saves the main tree object to a file in the specified folder.
+     *
+     * @param mainTree   The MainTree object to be saved
+     * @param folderName The name of the folder where the file will be saved
+     * @throws UncheckedIOException If an IOException occurs while creating
+     *                              directories or writing the object to the file
      */
-    private static void wait(final Collection<Future<?>> futures) throws ExecutionException, InterruptedException {
-        for (final Future<?> f : futures) {
-            f.get();
-        }
-    }
-
-    /**
-     * Generates a filename based on the given formula mapping.
-     * 
-     * @param mapping The formula mapping to generate the filename from.
-     * @return A string representing the generated filename.
-     */
-    private static String getFilename(final Formula mapping) {
-        final StringBuilder name = new StringBuilder();
-        int counter = 0;
-        for (final Literal literal : mapping.literals()) {
-            if (counter > 0) {
-                name.append("_and_");
-            }
-            if (!literal.phase()) {
-                name.append("not_");
-            }
-            name.append(literal.variable().toString());
-            counter++;
-        }
-        name.append(".txt");
-        return String.valueOf(name);
-    }
-
-    private static void sortOutputFiles(final String outputFolder) {
-        Logger.debug("Sorting output files in " + outputFolder);
-        final File output = new File(outputFolder);
-        final File[] outputs = output.listFiles();
-        for (final File file : Objects.requireNonNull(outputs)) {
-            if (!file.isFile()) {
-                continue;
-            }
-            List<String> outputList;
-            try {
-                outputList = Files.readAllLines(file.toPath());
-                final Set<StringWrapper> outputSet = outputList.stream().map(StringWrapper::new)
-                        .collect(Collectors.toSet());
-                outputList = outputSet.stream().map(StringWrapper::getString)
-                        .collect(Collectors.toList());
-                Collections.sort(outputList);
-            } catch (final IOException ex) {
-                Logger.error("Was not able to load output files", ex);
-                throw new UncheckedIOException(ex);
-            }
-            try (final FileWriter myWriter = new FileWriter(file, false)) {
-                for (final String outputLine : outputList) {
-                    myWriter.write(outputLine + "\n");
-                }
-            } catch (final IOException e) {
-                Logger.error("Was not able to sort output files: ", e);
-                throw new UncheckedIOException(e);
-            }
-
-        }
-    }
-
-    private static String getTrace(final ASTNode astNode, final Formula mapping) {
-        final String result;
-        if (astNode.getType() != ASTNode.NODE_TYPE.CLASS_OR_INTERFACE_DECLARATION
-                && astNode.getType() != ASTNode.NODE_TYPE.METHOD_DECLARATION) {
-            // node could possibly be a refinement
-            result = getName(" Refinement", astNode, false, mapping);
-        } else {
-            result = getName("", astNode, true, mapping);
-        }
-        return result;
-    }
-
-    private static String getName(String suffix, final ASTNode astNode, boolean insideClass,
-            final Formula mapping) {
-        if (astNode.getParent() != null) {
-            String missing_blank_space = "";
-            switch (astNode.getType()) {
-                case METHOD_DECLARATION:
-                    missing_blank_space = " ";
-                case CLASS_OR_INTERFACE_DECLARATION:
-                    insideClass = true;
-                    // Check whether the class/method declaration has the same mapping
-                    if (astNode.getMappings().contains(mapping)) {
-                        // when method/class is present (i.e. has the same mapping), we have a
-                        // method/class qualified name (=> no refinement)
-                        suffix = missing_blank_space + astNode.getCode();
-                    } else {
-                        // when method/class is NOT present, we have a method/class qualified name +
-                        // "Refinement" Tag (=> keep suffix)
-                        suffix = missing_blank_space + astNode.getCode() + suffix;
-                    }
-                    break;
-                case FOLDER:
-                    suffix = astNode.getCode() + "." + suffix;
-                    break;
-                default:
-                    break;
-            }
-            return getName(suffix, astNode.getParent(), insideClass, mapping);
-        } else {
-            // return an empty String when node is outside a java class
-            return insideClass ? suffix : "";
-        }
-    }
-
-    private static CustomHashSet<Module> featuresToModules(final CustomHashSet<Feature> positiveFeatures,
-                                                           final CustomHashSet<Feature> negativeFeatures) {
-        final CustomHashSet<Module> result = new CustomHashSet<>();
-        final CustomHashSet<CustomHashSet<Feature>> positivePowerSet = positiveFeatures.powerSet();
-        final CustomHashSet<CustomHashSet<Feature>> negativePowerSet = negativeFeatures.powerSet();
-
-        // Create all possible modules
-        for (final CustomHashSet<Feature> posSet : positivePowerSet) {
-            if (posSet.isEmpty()) {
-                continue;
-            }
-            for (final CustomHashSet<Feature> negSet : negativePowerSet) {
-                final CustomHashSet<Literal> literals = new CustomHashSet<>();
-                posSet.stream().map(feature -> f.literal(feature.getName(), true))
-                        .forEach(literals::add);
-                negSet.stream().map(feature -> f.literal(feature.getName(), false))
-                        .forEach(literals::add);
-                result.add(new Module(literals));
-            }
-        }
-
-        return result;
-    }
-
-    private static CustomHashSet<Module> updateModules(final CustomHashSet<Module> moduleSet,
-                                                       final CustomHashSet<Feature> negativeFeatures) {
-        final CustomHashSet<Module> result = new CustomHashSet<>();
-        final CustomHashSet<CustomHashSet<Feature>> negativePowerSet = negativeFeatures.powerSet();
-        for (final Module module : moduleSet) {
-            for (final CustomHashSet<Feature> negSet : negativePowerSet) {
-                final CustomHashSet<Literal> negLiterals = new CustomHashSet<>();
-                negSet.stream().map(feature -> f.literal(feature.getName(), false))
-                        .forEach(negLiterals::add);
-                result.add(new Module(module.getLiterals().unite(negLiterals)));
-            }
-        }
-        return result;
-    }
-
-    private CustomHashSet<Feature> allFeatures;
-
-    private int nThreads = Runtime.getRuntime().availableProcessors();
-
-    private final List<ProductPassport> sourceLocations;
-
-    private final ESupportedLanguages targetLanguage;
-
-    /*
-     * Set mapping_calculation to "CNF".
-     * TraceBoosting uses a heuristic to simplify the mapping in a sensible way. As
-     * in option 1, TraceBoosting takes the disjunction of the configurations
-     * associated with a piece of code. TraceBoosting then simplifies the resulting
-     * formula to a CNF formula.
-     */
-    public String mapping_calculation = "CNF";
-
-    private String inputFolder, inputFile, resultsFolder, resultsFile;
-
-    private final Path workingDir;
-
-    private final List<ProductInitializationTask> productInitTasks;
-
-    private final List<Product> products = new ArrayList<>();
-
-    public TraceBoosting(final List<ProductPassport> sourceLocations, final Path workingDir,
-            final ESupportedLanguages targetLanguage) {
-        this.sourceLocations = sourceLocations;
-        this.targetLanguage = targetLanguage;
-        this.workingDir = workingDir;
-        setPaths("input", "input", "results", "result");
-        this.productInitTasks = initialize();
-    }
-
-    public CustomHashSet<Feature> getAllFeatures() {
-        return allFeatures;
-    }
-
-    public void setNumThreads(final int numThreads) {
-        Logger.info("Updating thread pool...");
-        Logger.info("Shutting down old pool");
-        Logger.info("Created new pool with " + numThreads + " threads.");
-        this.nThreads = numThreads;
-    }
-
-    public void saveProducts(final Product[] products, final String folderName) {
-        Logger.info("Saving products to " + folderName);
-        final List<Future<?>> futures = new ArrayList<>(products.length);
-        ExecutorService threadPool = Executors.newFixedThreadPool(this.nThreads);
+    public static void saveMainTree(final MainTree mainTree, final String folderName) {
+        final String filePath = folderName + "/main-tree.ast";
+        Logger.info("Saving main tree to " + filePath);
         try {
-            for (int i = 0; i < products.length; i++) {
-                final ProductSaveTask task = new ProductSaveTask(products[i], folderName, i);
-                futures.add(threadPool.submit(task));
-            }
-            wait(futures);
-        } catch (ExecutionException | InterruptedException e) {
-            Logger.error("threading: ", e);
-            throw new RuntimeException(e);
-        } finally {
-            threadPool.shutdown();
+            Files.createDirectories(Paths.get(folderName));
+        } catch (final IOException e) {
+            Logger.error("Was not able to create directories for " + folderName, e);
+            throw new UncheckedIOException(e);
         }
-        ProductSaveTask.resetProcessedCount();
-        Logger.info("Saved all products.");
+        try (final ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(filePath))) {
+            out.writeObject(mainTree);
+        } catch (final IOException e) {
+            Logger.error("Was not able to write products to " + filePath, e);
+            throw new UncheckedIOException(e);
+        }
     }
 
-    public List<Product> getProducts() {
+    public List<Variant> getVariants() {
         // Multi-threaded loading of products
         if (!this.productInitTasks.isEmpty()) {
             ExecutorService threadPool = Executors.newFixedThreadPool(this.nThreads);
@@ -401,14 +221,14 @@ public class TraceBoosting {
                         throw new RuntimeException(e);
                     }
                 }).forEach(result -> {
-                    this.products.add(result.product);
+                    this.variants.add(result.variant);
                 });
             } finally {
                 threadPool.shutdown();
             }
         }
         this.productInitTasks.clear();
-        return this.products;
+        return this.variants;
     }
 
 
@@ -422,11 +242,11 @@ public class TraceBoosting {
      * @return A list of ProductInitializationTask objects representing the
      *         initialized products.
      */
-    public List<ProductInitializationTask> initialize() {
+    public List<VariantInitTask> initialize() {
         // creates products from variants and config files
         Logger.info("Collecting variant dirs...");
         allFeatures = new CustomHashSet<>();
-        final List<ProductInitializationTask> products = startProductCreation();
+        final List<VariantInitTask> products = startProductCreation();
         // saveProducts(products, inputFolder);
         // Logger.info("Parsing and saving of products complete.");
         Logger.info("...done.");
@@ -467,7 +287,7 @@ public class TraceBoosting {
         final CustomHashSet<Association> associations = extractAssociationsComparisonBased(mainTree);
 
         // Assign proactive traces to associations
-        assignProactiveTraces(associations);
+        propagateProactiveTraces(associations);
 
         // Translate mappings from associations back to products
         Logger.info("Translating mappings from associations back to products...");
@@ -614,23 +434,23 @@ public class TraceBoosting {
     public CustomHashSet<Association> extractAssociationsComparisonBased(final MainTree mainTree) {
         int productCount = 0;
         CustomHashSet<Association> associations = new CustomHashSet<>();
-        for (Product product : this.getProducts()) {
+        for (Variant variant : this.getVariants()) {
             // merge each product AST into the main tree and collect corresponding main tree
             // nodes
             // in the product for backtracking later on
             Logger.info("Merging product #" + productCount);
-            product.setAstNodesMainTree(mainTree.unite(product));
+            variant.setAstNodesMainTree(mainTree.unite(variant));
             // Forget the product's AST after the product has been merged. It is no longer
             // needed
-            product.forgetAST();
+            variant.forgetAST();
 
             Logger.info("Considering product " + productCount + "...");
-            final CustomHashSet<Feature> productFeatures = product.getFeatures();
+            final CustomHashSet<Feature> productFeatures = variant.getFeatures();
             final CustomHashSet<Feature> negFeatures = productFeatures.without(allFeatures);
             final CustomHashSet<Module> modules = featuresToModules(productFeatures, allFeatures.without(productFeatures));
             allFeatures.addAll(productFeatures);
             Association aNew = new Association(modules, modules, modules, new CustomHashSet<>(),
-                    product.getAstNodesMainTree());
+                    variant.getAstNodesMainTree());
 
             final CustomHashSet<Association> newAssociations = new CustomHashSet<>();
             for (final Association association : associations) {
@@ -702,7 +522,7 @@ public class TraceBoosting {
      * @throws RuntimeException if there is an error while assigning proactive
      *                          traces
      */
-    private void assignProactiveTraces(CustomHashSet<Association> associations) {
+    private void propagateProactiveTraces(CustomHashSet<Association> associations) {
         ExecutorService threadPool = Executors.newFixedThreadPool(nThreads);
         List<Future<Integer>> futures = new ArrayList<>();
         for (Association assoc : associations) {
@@ -827,13 +647,13 @@ public class TraceBoosting {
      * 
      * @return A list of ProductInitializationTasks, one for each source location
      */
-    private List<ProductInitializationTask> startProductCreation() {
+    private List<VariantInitTask> startProductCreation() {
         Logger.info("Creating products");
-        final Product[] products = new Product[sourceLocations.size()];
+        final Variant[] variants = new Variant[sourceLocations.size()];
 
-        final List<ProductInitializationTask> tasks = new ArrayList<>(products.length);
+        final List<VariantInitTask> tasks = new ArrayList<>(variants.length);
         for (int i = 0; i < sourceLocations.size(); i++) {
-            tasks.add(new ProductInitializationTask(i, sourceLocations.get(i), targetLanguage));
+            tasks.add(new VariantInitTask(i, sourceLocations.get(i), targetLanguage));
         }
         return tasks;
     }
@@ -866,6 +686,160 @@ public class TraceBoosting {
         public String getString() {
             return value;
         }
+    }
+
+    /**
+     * Waits for all the futures in the given collection to complete.
+     *
+     * @param futures a collection of Future objects to wait for
+     * @throws ExecutionException   if any of the futures encounter an exception
+     *                              during execution
+     * @throws InterruptedException if the current thread is interrupted while
+     *                              waiting
+     */
+    private static void wait(final Collection<Future<?>> futures) throws ExecutionException, InterruptedException {
+        for (final Future<?> f : futures) {
+            f.get();
+        }
+    }
+
+    /**
+     * Generates a filename based on the given formula mapping.
+     *
+     * @param mapping The formula mapping to generate the filename from.
+     * @return A string representing the generated filename.
+     */
+    private static String getFilename(final Formula mapping) {
+        final StringBuilder name = new StringBuilder();
+        int counter = 0;
+        for (final Literal literal : mapping.literals()) {
+            if (counter > 0) {
+                name.append("_and_");
+            }
+            if (!literal.phase()) {
+                name.append("not_");
+            }
+            name.append(literal.variable().toString());
+            counter++;
+        }
+        name.append(".txt");
+        return String.valueOf(name);
+    }
+
+    private static void sortOutputFiles(final String outputFolder) {
+        Logger.debug("Sorting output files in " + outputFolder);
+        final File output = new File(outputFolder);
+        final File[] outputs = output.listFiles();
+        for (final File file : Objects.requireNonNull(outputs)) {
+            if (!file.isFile()) {
+                continue;
+            }
+            List<String> outputList;
+            try {
+                outputList = Files.readAllLines(file.toPath());
+                final Set<StringWrapper> outputSet = outputList.stream().map(StringWrapper::new)
+                        .collect(Collectors.toSet());
+                outputList = outputSet.stream().map(StringWrapper::getString)
+                        .collect(Collectors.toList());
+                Collections.sort(outputList);
+            } catch (final IOException ex) {
+                Logger.error("Was not able to load output files", ex);
+                throw new UncheckedIOException(ex);
+            }
+            try (final FileWriter myWriter = new FileWriter(file, false)) {
+                for (final String outputLine : outputList) {
+                    myWriter.write(outputLine + "\n");
+                }
+            } catch (final IOException e) {
+                Logger.error("Was not able to sort output files: ", e);
+                throw new UncheckedIOException(e);
+            }
+
+        }
+    }
+
+    private static String getTrace(final ASTNode astNode, final Formula mapping) {
+        final String result;
+        if (astNode.getType() != ASTNode.NODE_TYPE.CLASS_OR_INTERFACE_DECLARATION
+                && astNode.getType() != ASTNode.NODE_TYPE.METHOD_DECLARATION) {
+            // node could possibly be a refinement
+            result = getName(" Refinement", astNode, false, mapping);
+        } else {
+            result = getName("", astNode, true, mapping);
+        }
+        return result;
+    }
+
+    private static String getName(String suffix, final ASTNode astNode, boolean insideClass,
+                                  final Formula mapping) {
+        if (astNode.getParent() != null) {
+            String missing_blank_space = "";
+            switch (astNode.getType()) {
+                case METHOD_DECLARATION:
+                    missing_blank_space = " ";
+                case CLASS_OR_INTERFACE_DECLARATION:
+                    insideClass = true;
+                    // Check whether the class/method declaration has the same mapping
+                    if (astNode.getMappings().contains(mapping)) {
+                        // when method/class is present (i.e. has the same mapping), we have a
+                        // method/class qualified name (=> no refinement)
+                        suffix = missing_blank_space + astNode.getCode();
+                    } else {
+                        // when method/class is NOT present, we have a method/class qualified name +
+                        // "Refinement" Tag (=> keep suffix)
+                        suffix = missing_blank_space + astNode.getCode() + suffix;
+                    }
+                    break;
+                case FOLDER:
+                    suffix = astNode.getCode() + "." + suffix;
+                    break;
+                default:
+                    break;
+            }
+            return getName(suffix, astNode.getParent(), insideClass, mapping);
+        } else {
+            // return an empty String when node is outside a java class
+            return insideClass ? suffix : "";
+        }
+    }
+
+    private static CustomHashSet<Module> featuresToModules(final CustomHashSet<Feature> positiveFeatures,
+                                                           final CustomHashSet<Feature> negativeFeatures) {
+        final CustomHashSet<Module> result = new CustomHashSet<>();
+        final CustomHashSet<CustomHashSet<Feature>> positivePowerSet = positiveFeatures.powerSet();
+        final CustomHashSet<CustomHashSet<Feature>> negativePowerSet = negativeFeatures.powerSet();
+
+        // Create all possible modules
+        for (final CustomHashSet<Feature> posSet : positivePowerSet) {
+            if (posSet.isEmpty()) {
+                continue;
+            }
+            for (final CustomHashSet<Feature> negSet : negativePowerSet) {
+                final CustomHashSet<Literal> literals = new CustomHashSet<>();
+                posSet.stream().map(feature -> f.literal(feature.getName(), true))
+                        .forEach(literals::add);
+                negSet.stream().map(feature -> f.literal(feature.getName(), false))
+                        .forEach(literals::add);
+                result.add(new Module(literals));
+            }
+        }
+
+        return result;
+    }
+
+    private static CustomHashSet<Module> updateModules(final CustomHashSet<Module> moduleSet,
+                                                       final CustomHashSet<Feature> negativeFeatures) {
+        final CustomHashSet<Module> result = new CustomHashSet<>();
+        final CustomHashSet<CustomHashSet<Feature>> negativePowerSet = negativeFeatures.powerSet();
+        for (final Module module : moduleSet) {
+            for (final CustomHashSet<Feature> negSet : negativePowerSet) {
+                final CustomHashSet<Literal> negLiterals = new CustomHashSet<>();
+                negSet.stream().map(feature -> f.literal(feature.getName(), false))
+                        .forEach(negLiterals::add);
+                result.add(new Module(module.getLiterals().unite(negLiterals)));
+            }
+        }
+        return result;
     }
 
 }

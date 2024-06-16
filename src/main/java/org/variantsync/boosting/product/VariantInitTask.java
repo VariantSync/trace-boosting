@@ -22,7 +22,7 @@ import java.util.concurrent.Callable;
  * A Callable task for initializing a product with the given parameters.
  * 
  */
-public class ProductInitializationTask implements Callable<ProductInitializationTask.InitResult> {
+public class VariantInitTask implements Callable<VariantInitTask.InitResult> {
     private final int productNumber;
     private final String productName;
     private final File configPath;
@@ -39,8 +39,8 @@ public class ProductInitializationTask implements Callable<ProductInitialization
      *                       product
      * @param targetLanguage the target language for the task
      */
-    public ProductInitializationTask(final int productNumber, final ProductPassport passport,
-            final ESupportedLanguages targetLanguage) {
+    public VariantInitTask(final int productNumber, final VariantPassport passport,
+                           final ESupportedLanguages targetLanguage) {
         this.productNumber = productNumber;
         this.productName = passport.getName();
         this.configPath = passport.getConfiguration().toFile();
@@ -52,7 +52,7 @@ public class ProductInitializationTask implements Callable<ProductInitialization
     /**
      * Parses the sources and creates an InitResult with the created product.
      * 
-     * This method reads a configuration file specified by the configPath parameter,
+     * This method reads a feature configuration file specified by the configPath parameter,
      * parses the features listed in the file,
      * creates a product AST based on the target language specified, and returns an
      * InitResult object containing the parsed information.
@@ -99,7 +99,7 @@ public class ProductInitializationTask implements Callable<ProductInitialization
         }
 
         return new InitResult(productNumber, allFeatures,
-                new Product(productName, new CustomHashSet<>(), productAst, productFeatures));
+                new Variant(productName, new CustomHashSet<>(), productAst, productFeatures));
     }
 
     /**
@@ -121,7 +121,7 @@ public class ProductInitializationTask implements Callable<ProductInitialization
         /**
          * The product associated with the initialization.
          */
-        public final Product product;
+        public final Variant variant;
 
         /**
          * Constructs a new InitResult with the specified ID, set of all features, and
@@ -129,12 +129,12 @@ public class ProductInitializationTask implements Callable<ProductInitialization
          * 
          * @param id          The ID of the initialization.
          * @param allFeatures A set of all features associated with the initialization.
-         * @param product     The product associated with the initialization.
+         * @param variant     The product associated with the initialization.
          */
-        public InitResult(final int id, final CustomHashSet<Feature> allFeatures, final Product product) {
+        public InitResult(final int id, final CustomHashSet<Feature> allFeatures, final Variant variant) {
             this.id = id;
             this.allFeatures = allFeatures;
-            this.product = product;
+            this.variant = variant;
         }
     }
 
