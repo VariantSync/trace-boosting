@@ -12,7 +12,7 @@ that the number of variants compared affects the effectiveness of the boosted tr
 <img alt="Comparison-Based Feature Tracing" src="docs/boostedTracingConcept.png" height="500" />
 
 TraceBoosting, as sketched conceptually in above figure, is an algorithm designed to enhance retroactive feature tracing with proactively collected feature traces. 
-Particularly, this implementation compares multiple product variants which are _parsed_ into artifact trees (V1-V3).
+Particularly, this implementation compares multiple variant variants which are _parsed_ into artifact trees (V1-V3).
 It builds sets of co-occurring artifacts (CA1-CA5) by matching the tree nodess and edges and computes sets of possible and impossible features for these co-occurring artifact sets 
 based on the respective configuration in which the tree elements occur.
 This heuristic retroactive comparison-based tracing method is inspired by the algorithm used in the tool [ECCO](https://jku-isse.github.io/ecco/).
@@ -55,34 +55,34 @@ Add the following dependency to your `pom.xml` file:
 ## Usage
 To use the TraceBoosting algorithm, follow these steps:
 
-1. Initialize an empty list to hold `ProductPassport` objects that comprise the artifact locations for each variant.
-2. Iterate the collection of variants for which traces are to be computed, create a `ProductPassport` for each variant and add it to the list.
+1. Initialize an empty list to hold `VariantPassport` objects that comprise the artifact locations for each variant.
+2. Iterate the collection of variants for which traces are to be computed, create a `VariantPassport` for each variant and add it to the list.
 3. Instantiate the TraceBoosting algorithm with 
-   - the list of product passports, 
+   - the list of variant passports, 
    - the working directory, and 
    - the 'language' used for parsing in the tracing algorithm (e.g. a generic, line-based parsing of lines into artifact nodes).
-4. Retrieve the list of products from the TraceBoosting instance, which are abstracted as AST structures.
-5. Apply the proactively collected feature traces to the products by settings the mappings for the respective nodes in the products' AST.
-6. Compute the Main tree, which represents the AST with feature traces, resulting from merging the products.
+4. Retrieve the list of variants from the TraceBoosting instance, which are abstracted as AST structures.
+5. Apply the proactively collected feature traces to the variants by settings the mappings for the respective nodes in the variants' AST.
+6. Compute the Main tree, which represents the AST with feature traces, resulting from merging the variants.
 
 The following code snippet demonstrates how to use the TraceBoosting algorithm:
 
 ```java
-List<ProductPassport> productPassports = new ArrayList<>();
+List<VariantPassport> variantPassports = new ArrayList<>();
 for (Variant variant : variants) {
     String variantName = variant.getName();
-    productPassports.add(new ProductPassport(variantName,
+    variantPassports.add(new VariantPassport(variantName,
             variantsDirectory.resolve(variantName), configFileMap.get(variantName)));
 }
 
-TraceBoosting traceBoosting = new TraceBoosting(productPassports,
+TraceBoosting traceBoosting = new TraceBoosting(variantPassports,
         workingDirectory, ESupportedLanguages.LINES);
 
-List<Product> products = traceBoosting.getProducts();
+List<Variant> variants = traceBoosting.getVariants();
 
-// Now apply proactively created traces to the products. You can directly access the AST nodes of the products.
-// TODO: Implement distribution of proactively collected mappings
+// Now apply proactively created traces to the variants. You can directly access the AST nodes of the variants.
+distributeMappings(variants)
 
 // Finally, execute the boosting algorithm
-MainTree mainTree = traceBoosting.compute();
+MainTree mainTree = traceBoosting.computeMapping();
 ```
