@@ -29,30 +29,21 @@ public class Demo {
         System.out.println("initiated with " + variants.size() + " products");
         applyDistribution(variants);
 
+        //collect and print set of extracted features (from configurations)
+        Set<String> relevantFeatures = variants.stream().flatMap(p -> p.getFeatures().stream().map(Feature::getName))
+                .collect(Collectors.toSet());
+        System.out.println(relevantFeatures);
+
         // runs the boosted comparison-based feature tracoing algorithm
         MainTree tree = traceBoosting.computeMappings();
 
+        // verify the results by checking which feature expressions are mapped onto the nodes of the variants
         for (ASTNode n : tree.getTree().getAstNodes()) {
             if (!n.getMapping().toString().equals("$true")) {
                 System.out.println(n.getMapping()+ " mapped onto " + n.getCode());
             }
         }
 
-        Set<String> relevantFeatures = variants.stream().flatMap(p -> p.getFeatures().stream().map(Feature::getName))
-                .collect(Collectors.toSet());
-
-        System.out.println(relevantFeatures);
-
-//        for (Variant p : traceBoosting.getVariants())
-//        {
-//            System.out.println("Variant: " + p.getName());
-//            for (ASTNode as : p.getAstNodesMainTree()) {
-//                if (!as.getMapping().toString().equals("$true")) {
-//                    System.out.println( as.getMapping()+ " mapped onto " + as.getCode());
-//                }
-//            }
-//            System.out.println();
-//        }
     }
 
     private static List<VariantPassport> createVariantPassports() {
