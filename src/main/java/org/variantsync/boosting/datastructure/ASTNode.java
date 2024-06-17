@@ -20,12 +20,15 @@ import java.util.Objects;
  */
 public class ASTNode implements Serializable {
 
+    /**
+     * A node-type specifies the type of node (e.g., root, file, kind of declaration, etc.).
+     */
     public enum NODE_TYPE {
         ROOT, FOLDER, FILE, LINE, DEFAULT,
         CLASS_OR_INTERFACE_DECLARATION, METHOD_DECLARATION, IF_STATEMENT,
         ELSE_STATEMENT, THEN_STATEMENT, CONSTRUCTOR_DECLARATION,
         FOREACH_STATEMENT, FOR_STATEMENT, DO_STATEMENT, ENUM_CONSTANT_DECLARATION, ENUM_DECLARATION,
-        SWITCH_ENTRY, SWITCH_STMT, MODULE_DECLARATION,
+        SWITCH_ENTRY, SWITCH_STMT, MODULE_DECLARATION
     }
 
     private final String code;

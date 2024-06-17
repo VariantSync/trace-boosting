@@ -88,12 +88,13 @@ import org.variantsync.boosting.product.VariantPassport;
  *      // Compute the main tree which represents the AST resulting from merging all variants
  *      // together with feature traces
  *      MainTree mainTree = traceBoosting.computeMappings();
+ *      evaluate(mainTRee);
  *  }</pre>
  *
  * <p>
- * Note: The actual implementation of methods like {@code distributeMappings}
- * and {@code compute} are not shown in this example and should be defined
- * elsewhere in the codebase.
+ * Note: The actual implementation of the methods {@code distributeMappings} and
+ * {@code evaluate} are not shown in this example and need to be specified
+ * elsewhere on demand.
  * </p>
  */
 public class TraceBoosting {

@@ -5,7 +5,8 @@ import org.logicng.formulas.Literal;
 import java.util.Objects;
 
 /**
- * A class representing a module in ECCO.
+ * A Module holds sets of likely and unlikely features and is mapped through an {@link Association} onto
+ * {@link ASTNode}s.
  * 
  * This class encapsulates a set of literals and provides methods for comparing
  * modules and retrieving information about the literals it contains.
