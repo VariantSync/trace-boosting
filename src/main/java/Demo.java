@@ -22,14 +22,15 @@ public class Demo {
                 Path.of(System.getProperty("user.dir") + "/data/graph/workdir"),
                 ESupportedLanguages.LINES);
 
-        // optionally the number of threads can be adjusted, per default it is set to the number of available system threads
+        // optionally the number of threads can be adjusted,
+        // per default it is set to the number of available system threads
         traceBoosting.setNumThreads(1);
 
         List<Variant> variants = traceBoosting.getVariants();
         System.out.println("initiated with " + variants.size() + " products");
         applyDistribution(variants);
 
-        //collect and print set of extracted features (from configurations)
+        // collect and print set of extracted features (from configurations)
         Set<String> relevantFeatures = variants.stream().flatMap(p -> p.getFeatures().stream().map(Feature::getName))
                 .collect(Collectors.toSet());
         System.out.println(relevantFeatures);
@@ -51,7 +52,6 @@ public class Demo {
         variantPassports.add(
                 new VariantPassport("weighted",
                         Path.of(System.getProperty("user.dir") + "/data/graph/variant1/src"),
-                        //configFileMap.get(variantName)
                         Path.of(System.getProperty("user.dir") + "/data/graph/variant1/config1.config")
                 )
         );
@@ -59,7 +59,6 @@ public class Demo {
         variantPassports.add(
                 new VariantPassport("directed",
                         Path.of(System.getProperty("user.dir") + "/data/graph/variant2/src"),
-                        //configFileMap.get(variantName)
                         Path.of(System.getProperty("user.dir") + "/data/graph/variant2/config2.config")
                 )
         );
