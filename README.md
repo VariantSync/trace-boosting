@@ -1,4 +1,5 @@
 [![JavaDoc](https://img.shields.io/badge/JavaDoc-Documentation-blue)](https://variantsync.github.io/trace-boosting/)
+[![License](https://img.shields.io/badge/License-GNU%20LGPLv3-blue)](LICENSE.LGPL3)
 
 # trace-boosting: Give an Inch and Take a Mile? Effects of Adding Reliable Knowledge to Heuristic Feature Tracing
 
