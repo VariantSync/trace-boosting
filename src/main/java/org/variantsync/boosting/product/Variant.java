@@ -19,29 +19,27 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * The Product class represents a product with features and an abstract syntax tree (AST).
- * 
- * This class defines a product with a set of features and a product
- * AST.
+ * The class Variant represents a software variant with features and an abstract syntax tree (AST).
+ *
  * It also stores the AST nodes of the main tree that correspond to the AST
- * nodes of the product AST.
+ * nodes of the variant AST.
  */
 public class Variant implements Serializable {
     private final CustomHashSet<Feature> features;
     private final String name;
-    // the original product AST
+    // the original variant's AST
     private AbstractAST productAST;
     // the AST nodes of the main tree that correspond to the AST nodes of the
-    // product AST
+    // variant AST
     private CustomHashSet<ASTNode> astNodesMainTree;
 
     /**
-     * Constructs a new Product object with the given parameters.
+     * Constructs a new Variant object with the given parameters.
      * 
-     * @param name             the name of the product
-     * @param astNodesMainTree the main tree of AST nodes for the product
-     * @param productAST       the abstract syntax tree for the product
-     * @param features         the set of features associated with the product
+     * @param name             the name of the variant
+     * @param astNodesMainTree the main tree of AST nodes of the variant
+     * @param productAST       the abstract syntax tree of the variant
+     * @param features         the set of features associated with the variant
      */
     public Variant(final String name, final CustomHashSet<ASTNode> astNodesMainTree, final AbstractAST productAST,
                    final CustomHashSet<Feature> features) {
@@ -52,18 +50,18 @@ public class Variant implements Serializable {
     }
 
     /**
-     * Creates a new Product object by copying the contents of another Product
+     * Creates a new Variant object by copying the contents of another Variant
      * object.
      * 
-     * @param other The Product object to copy from
+     * @param other The Variant object to copy from
      * @throws UnsupportedOperationException if the productAST type is not JavaAST
      *                                       or LineAST
      */
     public Variant(final Variant other) {
-        // Copy the name from the other Product object
+        // Copy the name from the other Variant object
         this.name = other.name;
 
-        // Create a new set of ASTNodes to copy from the other Product object
+        // Create a new set of ASTNodes to copy from the other Variant object
         final CustomHashSet<ASTNode> nodesToCopy = new CustomHashSet<>(other.astNodesMainTree);
         nodesToCopy.addAll(other.productAST.getAstNodes());
         nodesToCopy.add(other.productAST.getRoot());
@@ -71,7 +69,7 @@ public class Variant implements Serializable {
         // Create a mapping of original ASTNodes to copied ASTNodes
         final Map<ASTNode, ASTNode> originalToCopyMap = copyAstNodes(nodesToCopy);
 
-        // Copy the ASTNodes from the other Product object and update the main tree
+        // Copy the ASTNodes from the other Variant object and update the main tree
         final CustomHashSet<ASTNode> astNodes = new CustomHashSet<>(
                 other.astNodesMainTree
                         .stream()
@@ -79,14 +77,14 @@ public class Variant implements Serializable {
                         .collect(Collectors.toCollection(CustomHashSet::new)));
         this.astNodesMainTree = new CustomHashSet<>(astNodes);
 
-        // Copy the ASTNodes from the other Product object and update the tree
+        // Copy the ASTNodes from the other Variant object and update the tree
         final CustomHashSet<ASTNode> treeNodes = new CustomHashSet<>(
                 other.productAST.getAstNodes()
                         .stream()
                         .map(originalToCopyMap::get)
                         .collect(Collectors.toCollection(CustomHashSet::new)));
 
-        // Create a new productAST object based on the type of the other Product
+        // Create a new productAST object based on the type of the other Variant
         // object's productAST
         if (other.productAST instanceof JavaAST) {
             final JavaAST ast = (JavaAST) other.productAST;
@@ -103,16 +101,16 @@ public class Variant implements Serializable {
     }
 
     /**
-     * Clears the product Abstract Syntax Tree (AST) by setting it to null.
+     * Clears the variant's Abstract Syntax Tree (AST) by setting it to null.
      */
     public void forgetAST() {
         this.productAST = null;
     }
 
     /**
-     * Retrieves the set of features associated with the product.
+     * Retrieves the set of features associated with the variant.
      *
-     * @return The set of features associated with the product.
+     * @return The set of features associated with the variant
      */
     public CustomHashSet<Feature> getFeatures() {
         return features;
@@ -128,7 +126,7 @@ public class Variant implements Serializable {
     }
 
     /**
-     * Returns the mapping of the node at the given position in the product AST or,
+     * Returns the mapping of the node at the given position in the variant's AST or,
      * if it has already been merged into the main tree, the mapping of the
      * corresponding
      * node in the main tree.
@@ -138,7 +136,7 @@ public class Variant implements Serializable {
      *         found
      */
     public Formula getMappingFromPosition(final Position position) {
-        // look for the right node in the product AST's nodes
+        // look for the right node in the variant's AST's nodes
         for (final ASTNode oldNode : productAST.getAstNodes()) {
             if (position.equals(oldNode.getStartPosition())) {
                 // find and return the mapping of the corresponding node in the main tree
@@ -163,16 +161,16 @@ public class Variant implements Serializable {
     }
 
     /**
-     * Returns the ASTNode at the given position in the product AST or, if it has
+     * Returns the ASTNode at the given position in the variant AST or, if it has
      * already been merged into the main tree,
      * returns the corresponding node in the main tree.
      *
-     * @param position The position to search for in the product AST.
-     * @return The ASTNode at the given position in the product AST, or the
+     * @param position The position to search for in the variant's AST.
+     * @return The ASTNode at the given position in the variant's AST, or the
      *         corresponding node in the main tree if merged.
      */
     public ASTNode getNodeFromPosition(final Position position) {
-        // look for the right node in the product AST's nodes
+        // look for the right node in the variant's AST's nodes
         for (final ASTNode oldNode : productAST.getAstNodes()) {
             if (position.equals(oldNode.getStartPosition())) {
                 // find and return the corresponding node in the main tree
@@ -188,9 +186,9 @@ public class Variant implements Serializable {
     }
 
     /**
-     * Returns the Abstract Syntax Tree (AST) representing the product.
+     * Returns the Abstract Syntax Tree (AST) representing the variant.
      *
-     * @return the AST representing the product
+     * @return the AST representing the variant
      */
     public AbstractAST getProductAst() {
         return productAST;
@@ -249,7 +247,7 @@ public class Variant implements Serializable {
                 }
             }
 
-            // Handle product equivalent
+            // Handle variant equivalent
             {
                 final ASTNode productEquivalentCopy;
                 final var productEquivalent = node.getProductEquivalent();
