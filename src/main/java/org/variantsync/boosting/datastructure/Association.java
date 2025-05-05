@@ -159,7 +159,7 @@ public class Association {
     }
 
     /**
-     * Returns a list of the smallest min modules.
+     * Returns a list of the min modules with the least literals.
      * 
      * @return The list of smallest min modules
      */
@@ -168,7 +168,7 @@ public class Association {
     }
 
     /**
-     * Returns a list of the smallest max modules.
+     * Returns a list of the max modules with the least literals.
      * 
      * @return The list of smallest max modules
      */
@@ -177,10 +177,10 @@ public class Association {
     }
 
     /**
-     * Returns a list of the smallest modules from the given EccoSet of modules.
+     * Returns a list of the modules with the least literals in the given set of modules.
      *
      * @param modules the EccoSet of modules to search for the smallest ones
-     * @return a list of the smallest modules from the given EccoSet
+     * @return a list of the smallest modules from the given set
      */
     private List<Module> getSmallestModules(final CustomHashSet<Module> modules) {
         final List<Module> result = new LinkedList<>();
